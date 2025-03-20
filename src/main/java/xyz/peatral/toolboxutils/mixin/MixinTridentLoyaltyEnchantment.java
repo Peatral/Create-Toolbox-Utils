@@ -16,7 +16,6 @@ public class MixinTridentLoyaltyEnchantment extends Enchantment {
 
     @Override
     public boolean canEnchant(ItemStack stack) {
-        boolean isToolbox = stack.is(AllTags.AllItemTags.TOOLBOXES.tag);
-        return super.canEnchant(stack) || isToolbox;
+        return super.canEnchant(stack) || stack.is(AllTags.AllItemTags.TOOLBOXES.tag);
     }
 }

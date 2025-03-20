@@ -3,7 +3,6 @@ package xyz.peatral.toolboxutils.mixin;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.LevelAccessor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,8 +19,8 @@ public class MixinToolboxHandler {
     private static void getNearest(LevelAccessor world, Player player, int maxAmount, CallbackInfoReturnable<List<ToolboxBlockEntity>> ci) {
         ci.setReturnValue(ci.getReturnValue().stream().filter(toolboxBlockEntity -> {
             if (toolboxBlockEntity instanceof IEnchantableToolbox tb) {
-                return tb.getEnchantments().getOrDefault(Enchantments.LOYALTY, 0) < 1
-                        || tb.getOwnerProfile() != null && player.getUUID().equals(tb.getOwnerProfile().getId());
+                return tb.create_toolbox_utils$getLoyaltyLevel() < 1
+                        || tb.create_toolbox_utils$isOwner(player);
             } else {
                 return true;
             }

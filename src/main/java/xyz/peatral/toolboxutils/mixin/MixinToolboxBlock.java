@@ -28,7 +28,7 @@ public abstract class MixinToolboxBlock extends HorizontalDirectionalBlock imple
         super(pProperties);
     }
 
-    @Inject(method = "setPlacedBy", at = @At("RETURN"), remap = false)
+    @Inject(method = "setPlacedBy", at = @At("RETURN"))
     public void setPlacedBy(Level worldIn, BlockPos pos, BlockState state, LivingEntity placer, ItemStack stack, CallbackInfo ci) {
         if (worldIn.isClientSide || stack == null) {
             return;
@@ -36,20 +36,20 @@ public abstract class MixinToolboxBlock extends HorizontalDirectionalBlock imple
 
         this.withBlockEntityDo(worldIn, pos, (be) -> {
             if (be instanceof IEnchantableToolbox tbe) {
-                tbe.setEnchantments(EnchantmentHelper.getEnchantments(stack));
+                tbe.create_toolbox_utils$setEnchantments(EnchantmentHelper.getEnchantments(stack));
 
                 if (placer instanceof Player player) {
-                    tbe.setOwner(player.getGameProfile());
+                    tbe.create_toolbox_utils$setOwner(player.getGameProfile());
                 }
             }
         });
     }
 
-    @Inject(method = "getCloneItemStack", at = @At("RETURN"), remap = false)
+    @Inject(method = "getCloneItemStack", at = @At("RETURN"))
     public void getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state, CallbackInfoReturnable<ItemStack> cir) {
         Optional<ToolboxBlockEntity> blockEntityOptional = this.getBlockEntityOptional(world, pos);
         if (blockEntityOptional.isPresent() && blockEntityOptional.get() instanceof IEnchantableToolbox tbe) {
-            EnchantmentHelper.setEnchantments(tbe.getEnchantments(), cir.getReturnValue());
+            EnchantmentHelper.setEnchantments(tbe.create_toolbox_utils$getEnchantments(), cir.getReturnValue());
         }
     }
 }
