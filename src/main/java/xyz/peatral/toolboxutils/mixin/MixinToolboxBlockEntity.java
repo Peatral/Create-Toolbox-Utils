@@ -9,9 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -23,7 +21,6 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xyz.peatral.toolboxutils.IEnchantableToolbox;
 
 import javax.annotation.Nullable;
@@ -64,14 +61,6 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Override
     public boolean create_toolbox_utils$isOwner(Player player) {
         return create_toolbox_utils$owner == null || player.getUUID().equals(create_toolbox_utils$owner.getId());
-    }
-
-    @Inject(method = "createMenu", at = @At("RETURN"), remap = false, cancellable = true)
-    public void createMenu(int id, Inventory inv, Player player, CallbackInfoReturnable<AbstractContainerMenu> cir) {
-        if (create_toolbox_utils$isOwner(player) || create_toolbox_utils$getLoyaltyLevel() < 2) {
-            return;
-        }
-        cir.setReturnValue(null);
     }
 
     @Inject(method = "lazyTick", at = @At("RETURN"), remap = false)
