@@ -65,7 +65,7 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
 
     @Inject(method = "lazyTick", at = @At("RETURN"), remap = false)
     public void lazyTick(CallbackInfo ci) {
-        if (create_toolbox_utils$owner == null || create_toolbox_utils$owner.getId() == null || level == null || create_toolbox_utils$getLoyaltyLevel() < 3) {
+        if (create_toolbox_utils$owner == null || create_toolbox_utils$owner.getId() == null || level == null || create_toolbox_utils$getLoyaltyLevel() < 2) {
             return;
         }
         Player player = level.getPlayerByUUID(create_toolbox_utils$owner.getId());

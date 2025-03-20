@@ -16,8 +16,8 @@ import java.util.stream.Collectors;
 @Mixin(ToolboxHandler.class)
 public class MixinToolboxHandler {
     @Inject(method = "getNearest", at = @At("RETURN"), remap = false, cancellable = true)
-    private static void getNearest(LevelAccessor world, Player player, int maxAmount, CallbackInfoReturnable<List<ToolboxBlockEntity>> ci) {
-        ci.setReturnValue(ci.getReturnValue().stream().filter(toolboxBlockEntity -> {
+    private static void getNearest(LevelAccessor world, Player player, int maxAmount, CallbackInfoReturnable<List<ToolboxBlockEntity>> cir) {
+        cir.setReturnValue(cir.getReturnValue().stream().filter(toolboxBlockEntity -> {
             if (toolboxBlockEntity instanceof IEnchantableToolbox tb) {
                 return tb.create_toolbox_utils$getLoyaltyLevel() < 1
                         || tb.create_toolbox_utils$isOwner(player);
@@ -25,5 +25,13 @@ public class MixinToolboxHandler {
                 return true;
             }
         }).collect(Collectors.toList()));
+    }
+
+    @Inject(method = "withinRange", at = @At("RETURN"), remap = false, cancellable = true)
+    private static void withinRange(Player player, ToolboxBlockEntity box, CallbackInfoReturnable<Boolean> cir) {
+        if (!(box instanceof IEnchantableToolbox tb) || tb.create_toolbox_utils$getLoyaltyLevel() < 3 || !tb.create_toolbox_utils$isOwner(player)) {
+            return;
+        }
+        cir.setReturnValue(true);
     }
 }
