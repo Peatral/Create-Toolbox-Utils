@@ -1,6 +1,7 @@
 <p align="center"><img src="https://raw.githubusercontent.com/Peatral/Create-Toolbox-Utils/refs/heads/mc1.20.1/dev/src/main/resources/logo.png" alt="Logo" width="200"></p>
 <h1 align="center">Create: Toolbox Utils <br>
 <a href="https://github.com/Peatral/Create-Toolbox-Utils/blob/master/LICENSE"><img src="https://img.shields.io/github/license/Peatral/Create-Toolbox-Utils?style=flat&color=900c3f" alt="License"></a>
+<a href="https://www.curseforge.com/minecraft/mc-mods/create-toolbox-utils"><img src="http://cf.way2muchnoise.eu/1224595.svg" alt="CF"></a>
 <a href="https://modrinth.com/mod/create-toolbox-utils"><img src="https://img.shields.io/modrinth/dt/create-toolbox-utils?logo=modrinth&label=&suffix=%20&style=flat&color=242629&labelColor=5ca424&logoColor=1c1c1c" alt="Modrinth"></a>
 <br><br>
 </h1>
