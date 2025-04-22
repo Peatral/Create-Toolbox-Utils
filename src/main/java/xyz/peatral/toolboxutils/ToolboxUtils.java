@@ -1,6 +1,6 @@
 package xyz.peatral.toolboxutils;
 
-import net.minecraftforge.fml.common.Mod;
+import net.neoforged.fml.common.Mod;
 
 @Mod(ToolboxUtils.ID)
 public class ToolboxUtils {

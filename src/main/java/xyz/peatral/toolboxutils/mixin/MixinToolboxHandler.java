@@ -31,7 +31,7 @@ public class MixinToolboxHandler {
                 .filter(ToolboxBlockEntity::isFullyInitialized)
                 .filter(toolboxBlockEntity -> {
                     if (toolboxBlockEntity instanceof IEnchantableToolbox tb) {
-                        return tb.create_toolbox_utils$getLoyaltyLevel() < 1
+                        return tb.create_toolbox_utils$getLoyaltyLevel(world.registryAccess()) < 1
                                 || tb.create_toolbox_utils$isOwner(player);
                     }
                     return true;
@@ -42,7 +42,7 @@ public class MixinToolboxHandler {
 
     @Inject(method = "withinRange", at = @At("RETURN"), remap = false, cancellable = true)
     private static void withinRange(Player player, ToolboxBlockEntity box, CallbackInfoReturnable<Boolean> cir) {
-        if (!(box instanceof IEnchantableToolbox tb) || tb.create_toolbox_utils$getLoyaltyLevel() < 3 || !tb.create_toolbox_utils$isOwner(player)) {
+        if (!(box instanceof IEnchantableToolbox tb) || tb.create_toolbox_utils$getLoyaltyLevel(player.level().registryAccess()) < 3 || !tb.create_toolbox_utils$isOwner(player)) {
             return;
         }
         cir.setReturnValue(true);

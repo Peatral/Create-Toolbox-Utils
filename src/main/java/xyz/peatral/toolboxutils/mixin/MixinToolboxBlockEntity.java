@@ -5,14 +5,13 @@ import com.simibubi.create.content.equipment.toolbox.ToolboxBlock;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
+import net.createmod.catnip.codecs.CatnipCodecUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.*;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -24,13 +23,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.peatral.toolboxutils.IEnchantableToolbox;
 
 import javax.annotation.Nullable;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
 
 @Mixin(ToolboxBlockEntity.class)
 public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implements IEnchantableToolbox {
     @Unique
-    public Map<Enchantment, Integer> create_toolbox_utils$enchantments = new HashMap<>();
+    public ItemEnchantments create_toolbox_utils$enchantments = null;
 
     @Unique
     @Nullable
@@ -41,12 +39,12 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     }
 
     @Override
-    public Map<Enchantment, Integer> create_toolbox_utils$getEnchantments() {
+    public ItemEnchantments create_toolbox_utils$getEnchantments() {
         return create_toolbox_utils$enchantments;
     }
 
     @Override
-    public void create_toolbox_utils$setEnchantments(Map<Enchantment, Integer> enchantments) {
+    public void create_toolbox_utils$setEnchantments(ItemEnchantments enchantments) {
         create_toolbox_utils$enchantments = enchantments;
     }
 
@@ -65,7 +63,7 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
 
     @Inject(method = "lazyTick", at = @At("RETURN"), remap = false)
     public void lazyTick(CallbackInfo ci) {
-        if (create_toolbox_utils$owner == null || create_toolbox_utils$owner.getId() == null || level == null || create_toolbox_utils$getLoyaltyLevel() < 2) {
+        if (create_toolbox_utils$owner == null || create_toolbox_utils$owner.getId() == null || level == null || create_toolbox_utils$getLoyaltyLevel(level.registryAccess()) < 2) {
             return;
         }
         Player player = level.getPlayerByUUID(create_toolbox_utils$owner.getId());
@@ -82,31 +80,27 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     }
 
     @Inject(method = "read", at = @At("RETURN"), remap = false)
-    protected void read(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        if (compound.contains(ItemStack.TAG_ENCH, CompoundTag.TAG_LIST)) {
-            create_toolbox_utils$enchantments = EnchantmentHelper.deserializeEnchantments(compound.getList(ItemStack.TAG_ENCH, CompoundTag.TAG_COMPOUND));
-        }
-
-        if (compound.contains("Owner", CompoundTag.TAG_COMPOUND)) {
-            this.create_toolbox_utils$setOwner(NbtUtils.readGameProfile(compound.getCompound("Owner")));
-        }
+    protected void read(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
+        Optional.ofNullable(compound.get("Enchantments"))
+                .flatMap(tag -> CatnipCodecUtils.decode(ItemEnchantments.CODEC, registries, tag))
+                .ifPresent(enchantments -> create_toolbox_utils$enchantments = enchantments);
+        Optional.ofNullable(compound.get("Owner"))
+                .flatMap(tag -> CatnipCodecUtils.decode(ExtraCodecs.GAME_PROFILE, registries, tag))
+                .ifPresent(this::create_toolbox_utils$setOwner);
     }
 
     @Inject(method = "write", at = @At("RETURN"), remap = false)
-    protected void write(CompoundTag compound, boolean clientPacket, CallbackInfo ci) {
-        ListTag listtag = new ListTag();
-        for(Map.Entry<Enchantment, Integer> entry : create_toolbox_utils$enchantments.entrySet()) {
-            Enchantment enchantment = entry.getKey();
-            if (enchantment != null) {
-                listtag.add(EnchantmentHelper.storeEnchantment(EnchantmentHelper.getEnchantmentId(enchantment), entry.getValue()));
-            }
-        }
-        compound.put(ItemStack.TAG_ENCH, listtag);
+    protected void write(CompoundTag compound, HolderLookup.Provider registries, boolean clientPacket, CallbackInfo ci) {
+        Optional.ofNullable(create_toolbox_utils$enchantments)
+                .flatMap(enchantments -> CatnipCodecUtils.encode(ItemEnchantments.CODEC, registries, enchantments))
+                .ifPresent(tag -> compound.put("Enchantments", tag));
+        Optional.ofNullable(create_toolbox_utils$owner)
+                .flatMap(profile -> CatnipCodecUtils.encode(ExtraCodecs.GAME_PROFILE, registries, profile))
+                .ifPresent(tag -> compound.put("Owner", tag));
+    }
 
-        if (create_toolbox_utils$owner != null) {
-            CompoundTag ownerTag = new CompoundTag();
-            NbtUtils.writeGameProfile(ownerTag, create_toolbox_utils$owner);
-            compound.put("Owner", ownerTag);
-        }
+    @Override
+    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
+        super.read(tag, registries, clientPacket);
     }
 }

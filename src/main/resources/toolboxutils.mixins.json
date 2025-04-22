@@ -3,12 +3,10 @@
   "minVersion": "0.8",
   "package": "xyz.peatral.toolboxutils.mixin",
   "compatibilityLevel": "JAVA_8",
-  "refmap": "toolboxutils.refmap.json",
   "mixins": [
     "MixinToolboxBlock",
     "MixinToolboxBlockEntity",
-    "MixinToolboxHandler",
-    "MixinTridentLoyaltyEnchantment"
+    "MixinToolboxHandler"
   ],
   "client": [
   ],

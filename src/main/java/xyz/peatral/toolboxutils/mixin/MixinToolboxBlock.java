@@ -8,8 +8,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
@@ -36,7 +36,7 @@ public abstract class MixinToolboxBlock extends HorizontalDirectionalBlock imple
 
         this.withBlockEntityDo(worldIn, pos, (be) -> {
             if (be instanceof IEnchantableToolbox tbe) {
-                tbe.create_toolbox_utils$setEnchantments(EnchantmentHelper.getEnchantments(stack));
+                tbe.create_toolbox_utils$setEnchantments(EnchantmentHelper.getEnchantmentsForCrafting(stack));
 
                 if (placer instanceof Player player) {
                     tbe.create_toolbox_utils$setOwner(player.getGameProfile());
@@ -46,10 +46,10 @@ public abstract class MixinToolboxBlock extends HorizontalDirectionalBlock imple
     }
 
     @Inject(method = "getCloneItemStack", at = @At("RETURN"))
-    public void getCloneItemStack(BlockGetter world, BlockPos pos, BlockState state, CallbackInfoReturnable<ItemStack> cir) {
-        Optional<ToolboxBlockEntity> blockEntityOptional = this.getBlockEntityOptional(world, pos);
+    public void getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, CallbackInfoReturnable<ItemStack> cir) {
+        Optional<ToolboxBlockEntity> blockEntityOptional = this.getBlockEntityOptional(level, pos);
         if (blockEntityOptional.isPresent() && blockEntityOptional.get() instanceof IEnchantableToolbox tbe) {
-            EnchantmentHelper.setEnchantments(tbe.create_toolbox_utils$getEnchantments(), cir.getReturnValue());
+            EnchantmentHelper.setEnchantments(cir.getReturnValue(), tbe.create_toolbox_utils$getEnchantments());
         }
     }
 }
