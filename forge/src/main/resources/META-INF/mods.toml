@@ -1,0 +1,44 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+issueTrackerURL = "https://github.com/Peatral/Create-Toolbox-Utils/issues/"
+license = "MIT"
+
+[[mods]]
+modId = "toolboxutils"
+version = "${version}"
+displayName = "Create: Toolbox Utils"
+displayURL = "https://github.com/Peatral/Create-Toolbox-Utils/"
+authors = "Peatral"
+description = '''
+A small addon to Create to make Toolboxes enchantable
+'''
+logoFile = "assets/better_spyglass/icon.png"
+credits = "NoPlatypus for the idea"
+
+[[dependencies.toolboxutils]]
+modId = "forge"
+mandatory = true
+versionRange = "[47,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.toolboxutils]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[1.20.1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.toolboxutils]]
+modId = "architectury"
+mandatory = true
+versionRange = "[9.2.14,)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.toolboxutils]]
+modId="create"
+mandatory=true
+versionRange="[6.0.3,6.1.0)"
+ordering="NONE"
+side="BOTH"
