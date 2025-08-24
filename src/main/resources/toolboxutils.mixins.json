@@ -8,7 +8,8 @@
     "MixinToolboxBlock",
     "MixinToolboxBlockEntity",
     "MixinToolboxHandler",
-    "MixinTridentLoyaltyEnchantment"
+    "MixinTridentLoyaltyEnchantment",
+    "MixinItem"
   ],
   "client": [
   ],
