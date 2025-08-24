@@ -6,7 +6,8 @@
   "mixins": [
     "MixinToolboxBlock",
     "MixinToolboxBlockEntity",
-    "MixinToolboxHandler"
+    "MixinToolboxHandler",
+    "MixinItem"
   ],
   "client": [
   ],
