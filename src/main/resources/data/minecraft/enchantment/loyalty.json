@@ -29,6 +29,6 @@
   "slots": [
     "mainhand"
   ],
-  "supported_items": "#createtoolboxutils:enchantable/loyalty",
+  "supported_items": "#toolboxutils:enchantable/loyalty",
   "weight": 5
 }
