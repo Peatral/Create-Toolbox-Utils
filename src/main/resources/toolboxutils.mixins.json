@@ -4,10 +4,11 @@
   "package": "xyz.peatral.toolboxutils.mixin",
   "compatibilityLevel": "JAVA_8",
   "mixins": [
+    "MixinAllay",
+    "MixinItem",
     "MixinToolboxBlock",
     "MixinToolboxBlockEntity",
-    "MixinToolboxHandler",
-    "MixinItem"
+    "MixinToolboxHandler"
   ],
   "client": [
   ],
