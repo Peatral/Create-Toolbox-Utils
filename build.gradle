@@ -35,6 +35,10 @@ repositories {
     maven { url = "https://maven.createmod.net" } // Create, Ponder, Flywheel
     maven { url = "https://mvn.devos.one/snapshots" } // Registrate
     maven { url = "https://raw.githubusercontent.com/Fuzss/modresources/main/maven/" } // ForgeConfigAPIPort
+    maven {
+        name = 'TheIllusiveC4'
+        url = 'https://maven.theillusivec4.top/'
+    } // Curios
 }
 
 base {
@@ -141,6 +145,10 @@ dependencies {
 
     // in libs
     //runtimeOnly("blank:modid-${mc_version}:${version}")
+
+    // To test soft Curios dependency, (un)comment the runtimeOnly line below when running runClient and runServer tasks
+    runtimeOnly("top.theillusivec4.curios:curios-neoforge:${rootProject.curios_version}")
+    compileOnly("top.theillusivec4.curios:curios-neoforge:${rootProject.curios_version}:api")
 }
 
 // This block of code expands all declared replace properties in the specified resource targets.
