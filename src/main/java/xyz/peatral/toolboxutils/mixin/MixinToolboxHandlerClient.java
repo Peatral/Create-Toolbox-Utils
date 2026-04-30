@@ -1,13 +1,16 @@
 package xyz.peatral.toolboxutils.mixin;
 
+import com.google.common.collect.ImmutableList;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.content.equipment.toolbox.RadialToolboxMenu;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandlerClient;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
+import net.createmod.catnip.gui.ScreenOpener;
 import net.createmod.catnip.nbt.NBTHelper;
 import net.createmod.catnip.platform.services.NetworkHelper;
 import net.minecraft.client.DeltaTracker;
@@ -18,6 +21,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -26,6 +30,8 @@ import xyz.peatral.toolboxutils.network.ToolboxProxyEquipPacket;
 import xyz.peatral.toolboxutils.proxy.ToolboxProxy;
 import xyz.peatral.toolboxutils.proxy.ToolboxProxyHandler;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 import static com.simibubi.create.foundation.gui.AllGuiTextures.*;
@@ -55,6 +61,57 @@ public class MixinToolboxHandlerClient {
             ));
         } else {
             original.call(instance, packet);
+        }
+    }
+
+    @Inject(
+            method = "onKeyInput",
+            at = @At(
+                    value = "INVOKE",
+                    target = "Lnet/minecraft/nbt/CompoundTag;getCompound(Ljava/lang/String;)Lnet/minecraft/nbt/CompoundTag;",
+                    ordinal = 0
+            ),
+            cancellable = true
+    )
+    private static void onKeyInput(
+            int key,
+            boolean pressed,
+            CallbackInfo ci,
+            @Local(name = "player") LocalPlayer player,
+            @Local(name = "level") Level level
+    ) {
+        List<ToolboxBlockEntity> toolboxes = ToolboxHandler.getNearest(level, player, 8);
+        toolboxes.sort(Comparator.comparing(ToolboxBlockEntity::getUniqueId));
+
+        CompoundTag compound = player.getPersistentData()
+                .getCompound("CreateToolboxProxyData");
+
+        String slotKey = String.valueOf(player.getInventory().selected);
+        boolean equipped = compound.contains(slotKey);
+
+        if (equipped) {
+            UUID uuid = NbtUtils.loadUUID(NBTHelper.getINBT(compound.getCompound(slotKey), "UUID"));
+            ToolboxProxy proxy = ToolboxProxyHandler.getProxy(level, uuid);
+            if (proxy == null) {
+                ci.cancel();
+                return;
+            }
+            BlockPos pos = proxy.getBlockPos();
+            double max = ToolboxHandler.getMaxRange(player);
+            boolean canReachToolbox = ToolboxHandler.distance(player.position(), pos) < max * max;
+
+            if (canReachToolbox) {
+                RadialToolboxMenu screen = new RadialToolboxMenu(toolboxes,
+                        RadialToolboxMenu.State.SELECT_ITEM_UNEQUIP, proxy);
+                screen.prevSlot(compound.getCompound(slotKey)
+                        .getInt("Slot"));
+                ScreenOpener.open(screen);
+                ci.cancel();
+                return;
+            }
+
+            ScreenOpener.open(new RadialToolboxMenu(ImmutableList.of(), RadialToolboxMenu.State.DETACH, null));
+            ci.cancel();
         }
     }
 
