@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.peatral.toolboxutils.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.proxy.ToolboxProxyHandler;
 
 @Mixin(Allay.class)
 public abstract class MixinAllay extends PathfinderMob implements InventoryCarrier, VibrationSystem {

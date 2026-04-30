@@ -4,6 +4,7 @@ import com.mojang.authlib.GameProfile;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlock;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
+import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
 import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import net.createmod.catnip.codecs.CatnipCodecUtils;
 import net.minecraft.core.BlockPos;
@@ -16,6 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -27,6 +29,9 @@ import java.util.Optional;
 
 @Mixin(ToolboxBlockEntity.class)
 public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implements IEnchantableToolbox {
+    @Shadow
+    ToolboxInventory inventory;
+
     @Unique
     public ItemEnchantments create_toolbox_utils$enchantments = null;
 
@@ -36,6 +41,11 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
 
     public MixinToolboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
+    }
+
+    @Override
+    public ToolboxInventory create_toolbox_utils$getInventory() {
+        return inventory;
     }
 
     @Override

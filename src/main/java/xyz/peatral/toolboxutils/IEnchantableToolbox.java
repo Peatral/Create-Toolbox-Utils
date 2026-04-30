@@ -1,6 +1,7 @@
 package xyz.peatral.toolboxutils;
 
 import com.mojang.authlib.GameProfile;
+import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.player.Player;
@@ -26,4 +27,6 @@ public interface IEnchantableToolbox {
                         )
                 ).orElse(0);
     }
+
+    ToolboxInventory create_toolbox_utils$getInventory();
 }

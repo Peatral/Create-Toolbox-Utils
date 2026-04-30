@@ -8,9 +8,11 @@
     "MixinItem",
     "MixinToolboxBlock",
     "MixinToolboxBlockEntity",
-    "MixinToolboxHandler"
+    "MixinToolboxHandler",
+    "MixinToolboxInventory"
   ],
   "client": [
+    "MixinRadialToolboxMenu"
   ],
   "injectors": {
     "defaultRequire": 1

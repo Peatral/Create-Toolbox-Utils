@@ -1,4 +1,4 @@
-package xyz.peatral.toolboxutils;
+package xyz.peatral.toolboxutils.network;
 
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -7,16 +7,18 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import xyz.peatral.toolboxutils.proxy.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.ToolboxUtils;
 
 import java.util.UUID;
 
-public record RemoveToolboxProxyPayload(UUID uuid) implements CustomPacketPayload {
+public record RemoveToolboxProxyPacket(UUID uuid) implements CustomPacketPayload {
     public static final ResourceLocation ID = ResourceLocation.fromNamespaceAndPath(ToolboxUtils.ID, "remove_toolbox_proxy");
-    public static final CustomPacketPayload.Type<RemoveToolboxProxyPayload> TYPE = new CustomPacketPayload.Type<>(ID);
-    public static final StreamCodec<RegistryFriendlyByteBuf, RemoveToolboxProxyPayload> STREAM_CODEC = StreamCodec.composite(
+    public static final CustomPacketPayload.Type<RemoveToolboxProxyPacket> TYPE = new CustomPacketPayload.Type<>(ID);
+    public static final StreamCodec<RegistryFriendlyByteBuf, RemoveToolboxProxyPacket> STREAM_CODEC = StreamCodec.composite(
             UUIDUtil.STREAM_CODEC,
-            RemoveToolboxProxyPayload::uuid,
-            RemoveToolboxProxyPayload::new
+            RemoveToolboxProxyPacket::uuid,
+            RemoveToolboxProxyPacket::new
     );
 
     @Override

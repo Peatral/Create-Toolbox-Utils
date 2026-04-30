@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 @Mixin(ToolboxHandler.class)
 public class MixinToolboxHandler {
+
     @Inject(method = "getNearest", at = @At("HEAD"), remap = false, cancellable = true)
     private static void getNearest(LevelAccessor world, Player player, int maxAmount, CallbackInfoReturnable<List<ToolboxBlockEntity>> cir) {
         Vec3 location = player.position();
