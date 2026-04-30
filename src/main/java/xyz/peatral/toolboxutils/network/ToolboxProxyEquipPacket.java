@@ -1,7 +1,6 @@
 package xyz.peatral.toolboxutils.network;
 
 import com.simibubi.create.content.equipment.toolbox.ItemReturnInvWrapper;
-import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
 import net.minecraft.core.BlockPos;
@@ -15,7 +14,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import xyz.peatral.toolboxutils.IEnchantableToolbox;
