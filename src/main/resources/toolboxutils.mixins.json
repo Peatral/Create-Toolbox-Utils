@@ -12,7 +12,8 @@
     "MixinToolboxInventory"
   ],
   "client": [
-    "MixinRadialToolboxMenu"
+    "MixinRadialToolboxMenu",
+    "MixinToolboxHandlerClient"
   ],
   "injectors": {
     "defaultRequire": 1
