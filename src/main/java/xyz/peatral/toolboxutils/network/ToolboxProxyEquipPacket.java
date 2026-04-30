@@ -1,6 +1,7 @@
 package xyz.peatral.toolboxutils.network;
 
 import com.simibubi.create.content.equipment.toolbox.ItemReturnInvWrapper;
+import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
 import net.minecraft.core.BlockPos;
@@ -14,6 +15,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import xyz.peatral.toolboxutils.IEnchantableToolbox;
@@ -82,16 +84,16 @@ public record ToolboxProxyEquipPacket(UUID uuid, int slot, int hotbarSlot) imple
         }
 
         CompoundTag compound = player.getPersistentData()
-                .getCompound("CreateToolboxData");
+                .getCompound("CreateToolboxProxyData");
         String key = String.valueOf(hotbarSlot);
 
         CompoundTag data = new CompoundTag();
         data.putInt("Slot", slot);
-        data.put("Pos", NbtUtils.writeBlockPos(toolboxPos));
+        data.put("UUID", NbtUtils.createUUID(uuid));
         compound.put(key, data);
 
         player.getPersistentData()
-                .put("CreateToolboxData", compound);
+                .put("CreateToolboxProxyData", compound);
 
         blockEntity.connectPlayer(slot, player, hotbarSlot);
         ToolboxHandler.syncData(player);

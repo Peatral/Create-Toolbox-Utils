@@ -1,5 +1,7 @@
 package xyz.peatral.toolboxutils.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlock;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
@@ -39,6 +41,9 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Nullable
     private GameProfile create_toolbox_utils$owner;
 
+    @Unique
+    private boolean create_toolbox_utils$isProxy = false;
+
     public MixinToolboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -69,6 +74,24 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Override
     public boolean create_toolbox_utils$isOwner(Player player) {
         return create_toolbox_utils$owner == null || player.getUUID().equals(create_toolbox_utils$owner.getId());
+    }
+
+    @Override
+    public boolean create_toolbox_utils$isProxy() {
+        return create_toolbox_utils$isProxy;
+    }
+
+    @Override
+    public void create_toolbox_utils$setProxy(boolean isProxy) {
+        this.create_toolbox_utils$isProxy = isProxy;
+    }
+
+    @WrapOperation(method = "tickPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/CompoundTag;getCompound(Ljava/lang/String;)Lnet/minecraft/nbt/CompoundTag;"))
+    public CompoundTag tickPlayers(CompoundTag instance, String key, Operation<CompoundTag> original) {
+        if (create_toolbox_utils$isProxy() && key.equals("CreateToolboxData")) {
+            return instance.getCompound("CreateToolboxProxyData");
+        }
+        return original.call(instance, key);
     }
 
     @Inject(method = "lazyTick", at = @At("RETURN"), remap = false)

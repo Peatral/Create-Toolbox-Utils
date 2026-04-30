@@ -10,6 +10,7 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
+import xyz.peatral.toolboxutils.IEnchantableToolbox;
 
 import java.util.UUID;
 
@@ -29,6 +30,9 @@ public class ToolboxProxy extends ToolboxBlockEntity {
 
         if (stack.has(DataComponents.CUSTOM_NAME)) {
             setCustomName(stack.getHoverName());
+        }
+        if (this instanceof IEnchantableToolbox enchantableToolbox) {
+            enchantableToolbox.create_toolbox_utils$setProxy(true);
         }
     }
 

@@ -6,6 +6,7 @@ import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -51,15 +52,15 @@ public record ToolboxProxyDisposeAllPacket(UUID uuid) implements CustomPacketPay
             return;
 
         CompoundTag compound = player.getPersistentData()
-                .getCompound("CreateToolboxData");
+                .getCompound("CreateToolboxProxyData");
         MutableBoolean sendData = new MutableBoolean(false);
 
         ToolboxInventory toolboxInventory = toolbox.create_toolbox_utils$getInventory();
         toolboxInventory.inLimitedMode(inventory -> {
             for (int i = 0; i < 36; i++) {
                 String key = String.valueOf(i);
-                if (compound.contains(key) && NBTHelper.readBlockPos(compound.getCompound(key), "Pos")
-                        .equals(toolboxPos)) {
+                if (compound.contains(key) && NbtUtils.loadUUID(compound.getCompound(key).get("UUID"))
+                        .equals(uuid)) {
                     ToolboxHandler.unequip(player, i, true);
                     sendData.setTrue();
                 }

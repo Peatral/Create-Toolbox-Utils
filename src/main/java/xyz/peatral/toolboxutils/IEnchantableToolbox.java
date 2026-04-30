@@ -29,4 +29,6 @@ public interface IEnchantableToolbox {
     }
 
     ToolboxInventory create_toolbox_utils$getInventory();
+    boolean create_toolbox_utils$isProxy();
+    void create_toolbox_utils$setProxy(boolean isProxy);
 }
