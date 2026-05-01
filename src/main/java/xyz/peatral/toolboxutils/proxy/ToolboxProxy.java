@@ -11,7 +11,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import xyz.peatral.toolboxutils.IEnchantableToolbox;
+import xyz.peatral.toolboxutils.IFilterable;
+import xyz.peatral.toolboxutils.ToolboxDataComponents;
 
+import java.util.List;
 import java.util.UUID;
 
 public class ToolboxProxy extends ToolboxBlockEntity {
@@ -31,8 +34,19 @@ public class ToolboxProxy extends ToolboxBlockEntity {
         if (stack.has(DataComponents.CUSTOM_NAME)) {
             setCustomName(stack.getHoverName());
         }
+
         if (this instanceof IEnchantableToolbox enchantableToolbox) {
             enchantableToolbox.create_toolbox_utils$setProxy(true);
+
+            ItemContainerContents loadedFilters = stack.get(ToolboxDataComponents.TOOLBOX_FILTERS);
+            if (loadedFilters != null && enchantableToolbox.create_toolbox_utils$getInventory() instanceof IFilterable filterable) {
+                List<ItemStack> filters = filterable.create_toolbox_utils$getFilters();
+                for (int i = 0; i < filters.size(); i++) {
+                    if (i < loadedFilters.getSlots()) {
+                        filters.set(i, loadedFilters.getStackInSlot(i));
+                    }
+                }
+            }
         }
     }
 
@@ -46,6 +60,13 @@ public class ToolboxProxy extends ToolboxBlockEntity {
 
         if (hasCustomName()) {
             sourceStack.set(DataComponents.CUSTOM_NAME, getName());
+        }
+
+        if (this instanceof IEnchantableToolbox enchantableToolbox) {
+            if (enchantableToolbox.create_toolbox_utils$getInventory() instanceof IFilterable filterable) {
+                List<ItemStack> filters = filterable.create_toolbox_utils$getFilters();
+                sourceStack.set(ToolboxDataComponents.TOOLBOX_FILTERS, ItemContainerContents.fromItems(filters));
+            }
         }
     }
 
