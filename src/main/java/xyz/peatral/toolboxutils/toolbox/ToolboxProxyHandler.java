@@ -70,7 +70,6 @@ public class ToolboxProxyHandler {
         ToolboxBlockEntity be = ACTIVE_PROXIES.get(level).remove(uuid);
         if (be != null) {
             be.invalidate();
-            be.clearRemoved();
         }
     }
 
