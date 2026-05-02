@@ -3,10 +3,15 @@ package xyz.peatral.toolboxutils.toolbox;
 import com.simibubi.create.AllBlockEntityTypes;
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
+import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import net.createmod.catnip.data.WorldAttached;
+import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtUtils;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -73,7 +78,30 @@ public class ToolboxProxyHandler {
         }
     }
 
-    public static  void tickToolbox(Entity entity, ItemStack itemStack) {
+    public static void disposeProxy(Level level, UUID uuid) {
+        if (uuid == null) return;
+
+        if (level instanceof ServerLevel serverLevel) {
+            for (ServerPlayer player : serverLevel.players()) {
+                CompoundTag compound = player.getPersistentData().getCompound("CreateToolboxProxyData");
+                boolean sendData = false;
+                for (int i = 0; i < 9; i++) {
+                    String key = String.valueOf(i);
+                    if (compound.contains(key) && NbtUtils.loadUUID(NBTHelper.getINBT(compound.getCompound(key), "UUID")).equals(uuid)) {
+                        ToolboxHandler.unequip(player, i, false);
+                        sendData = true;
+                    }
+                }
+                if (sendData) {
+                    ToolboxHandler.syncData(player);
+                }
+            }
+        }
+
+        removeProxy(level, uuid);
+    }
+
+    public static void tickToolbox(Entity entity, ItemStack itemStack) {
         UUID uuid = itemStack.get(AllDataComponents.TOOLBOX_UUID);
         if (uuid == null) return;
 
@@ -84,7 +112,7 @@ public class ToolboxProxyHandler {
 
         if (proxy != null) {
             if (!proxy.getBlockPos().equals(currentPos) || proxy.getLevel() != level) {
-                ToolboxProxyHandler.removeProxy(level, uuid);
+                ToolboxProxyHandler.removeProxy(proxy.getLevel(), uuid);
                 proxy = null;
             }
         }
@@ -100,7 +128,7 @@ public class ToolboxProxyHandler {
         UUID uuid = itemStack.get(AllDataComponents.TOOLBOX_UUID);
         Level level = entity.level();
         if (uuid != null) {
-            ToolboxProxyHandler.removeProxy(level, uuid);
+            ToolboxProxyHandler.disposeProxy(level, uuid);
             if (level instanceof ServerLevel serverLevel) {
                 PacketDistributor.sendToPlayersInDimension(serverLevel, new RemoveToolboxProxyPacket(uuid));
             }

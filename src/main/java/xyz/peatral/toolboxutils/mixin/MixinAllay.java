@@ -1,5 +1,6 @@
 package xyz.peatral.toolboxutils.mixin;
 
+import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -15,6 +16,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
+
+import java.util.UUID;
 
 @Mixin(Allay.class)
 public abstract class MixinAllay extends PathfinderMob implements InventoryCarrier, VibrationSystem {
@@ -34,7 +37,11 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
     public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
         ItemStack handStack = getItemBySlot(EquipmentSlot.MAINHAND);
         if (slot == EquipmentSlot.MAINHAND && AllTags.AllItemTags.TOOLBOXES.matches(handStack)) {
-            ToolboxProxyHandler.removeToolbox(this, handStack);
+            UUID oldUuid = handStack.get(AllDataComponents.TOOLBOX_UUID);
+            UUID newUuid = stack.get(AllDataComponents.TOOLBOX_UUID);
+            if (oldUuid == null || !oldUuid.equals(newUuid)) {
+                ToolboxProxyHandler.removeToolbox(this, handStack);
+            }
         }
         super.setItemSlot(slot, stack);
     }
