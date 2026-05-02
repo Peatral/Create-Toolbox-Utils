@@ -1,16 +1,17 @@
-package xyz.peatral.toolboxutils;
+package xyz.peatral.toolboxutils.toolbox;
 
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.Optional;
 
-public interface IEnchantableToolbox {
+public interface IExtendedToolbox {
     ItemEnchantments create_toolbox_utils$getEnchantments();
     void create_toolbox_utils$setEnchantments(ItemEnchantments enchantments);
 
@@ -31,4 +32,9 @@ public interface IEnchantableToolbox {
     ToolboxInventory create_toolbox_utils$getInventory();
     boolean create_toolbox_utils$isProxy();
     void create_toolbox_utils$setProxy(boolean isProxy);
+    void create_toolbox_utils$setSource(ItemStack stack);
+
+    static boolean isProxy(Object object) {
+        return object instanceof IExtendedToolbox tb && tb.create_toolbox_utils$isProxy();
+    }
 }

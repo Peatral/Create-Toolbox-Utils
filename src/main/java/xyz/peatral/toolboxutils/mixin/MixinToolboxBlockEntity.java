@@ -11,9 +11,14 @@ import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import net.createmod.catnip.codecs.CatnipCodecUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.nbt.*;
+import net.minecraft.core.component.DataComponentMap;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ExtraCodecs;
+import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -24,15 +29,21 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.peatral.toolboxutils.IEnchantableToolbox;
+import xyz.peatral.toolboxutils.toolbox.IFilterable;
+import xyz.peatral.toolboxutils.ToolboxDataComponents;
+import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 
 import javax.annotation.Nullable;
+import java.util.List;
 import java.util.Optional;
 
 @Mixin(ToolboxBlockEntity.class)
-public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implements IEnchantableToolbox {
+public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implements Nameable, IExtendedToolbox {
     @Shadow
     ToolboxInventory inventory;
+
+    @Shadow
+    public abstract boolean hasCustomName();
 
     @Unique
     public ItemEnchantments create_toolbox_utils$enchantments = null;
@@ -43,6 +54,9 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
 
     @Unique
     private boolean create_toolbox_utils$isProxy = false;
+
+    @Unique
+    private ItemStack create_Toolbox_Utils$sourceStack;
 
     public MixinToolboxBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
@@ -84,6 +98,11 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Override
     public void create_toolbox_utils$setProxy(boolean isProxy) {
         this.create_toolbox_utils$isProxy = isProxy;
+    }
+
+    @Override
+    public void create_toolbox_utils$setSource(ItemStack stack) {
+        this.create_Toolbox_Utils$sourceStack = stack;
     }
 
     @WrapOperation(method = "tickPlayers", at = @At(value = "INVOKE", target = "Lnet/minecraft/nbt/CompoundTag;getCompound(Ljava/lang/String;)Lnet/minecraft/nbt/CompoundTag;"))
@@ -135,5 +154,43 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Override
     protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
         super.read(tag, registries, clientPacket);
+    }
+
+    @Unique
+    private void create_Toolbox_Utils$persistToItem() {
+        DataComponentMap.Builder builder = DataComponentMap.builder();
+
+        this.collectImplicitComponents(builder);
+
+        DataComponentMap results = builder.build();
+        create_Toolbox_Utils$sourceStack.applyComponents(results);
+
+        if (hasCustomName()) {
+            create_Toolbox_Utils$sourceStack.set(DataComponents.CUSTOM_NAME, getName());
+        }
+
+        if (this.create_toolbox_utils$getInventory() instanceof IFilterable filterable) {
+            List<ItemStack> filters = filterable.create_toolbox_utils$getFilters();
+            create_Toolbox_Utils$sourceStack.set(ToolboxDataComponents.TOOLBOX_FILTERS, ItemContainerContents.fromItems(filters));
+        }
+    }
+
+
+    @Override
+    public void sendData() {
+        if (create_toolbox_utils$isProxy) {
+            create_Toolbox_Utils$persistToItem();
+        } else {
+            super.sendData();
+        }
+    }
+
+    @Override
+    public void setChanged() {
+        if (create_toolbox_utils$isProxy) {
+            create_Toolbox_Utils$persistToItem();
+        } else {
+            super.setChanged();
+        }
     }
 }

@@ -1,4 +1,4 @@
-package xyz.peatral.toolboxutils;
+package xyz.peatral.toolboxutils.toolbox;
 
 import net.minecraft.world.item.ItemStack;
 

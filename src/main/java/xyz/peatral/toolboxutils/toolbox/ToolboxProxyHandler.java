@@ -1,23 +1,29 @@
-package xyz.peatral.toolboxutils.proxy;
+package xyz.peatral.toolboxutils.toolbox;
 
+import com.simibubi.create.AllBlockEntityTypes;
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import net.createmod.catnip.data.WorldAttached;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
+import xyz.peatral.toolboxutils.ToolboxDataComponents;
 import xyz.peatral.toolboxutils.network.RemoveToolboxProxyPacket;
 
+import java.util.List;
 import java.util.UUID;
 import java.util.WeakHashMap;
 
 public class ToolboxProxyHandler {
-    private static final WorldAttached<WeakHashMap<UUID, ToolboxProxy>> ACTIVE_PROXIES = new WorldAttached<>(w -> new WeakHashMap<>());
+    private static final WorldAttached<WeakHashMap<UUID, ToolboxBlockEntity>> ACTIVE_PROXIES = new WorldAttached<>(w -> new WeakHashMap<>());
 
-    public static ToolboxProxy getProxy(Level level, UUID uuid) {
+    public static ToolboxBlockEntity getProxy(Level level, UUID uuid) {
         return uuid == null ? null : ACTIVE_PROXIES.get(level).get(uuid);
     }
 
@@ -25,8 +31,35 @@ public class ToolboxProxyHandler {
         return uuid != null && ACTIVE_PROXIES.get(level).containsKey(uuid);
     }
 
-    public static ToolboxProxy createProxy(ItemStack stack, Level level, BlockPos pos) {
-        ToolboxProxy be = new ToolboxProxy(stack, level, pos);
+    public static ToolboxBlockEntity createProxy(ItemStack stack, Level level, BlockPos pos) {
+        ToolboxBlockEntity be = new ToolboxBlockEntity(AllBlockEntityTypes.TOOLBOX.get(), pos,
+                ((BlockItem) stack.getItem()).getBlock().defaultBlockState());
+
+        if (!(be instanceof IExtendedToolbox extendedToolbox)) {
+            return null;
+        }
+
+        extendedToolbox.create_toolbox_utils$setSource(stack);
+        be.setLevel(level);
+
+        be.setUniqueId(stack.getOrDefault(AllDataComponents.TOOLBOX_UUID, UUID.randomUUID()));
+        be.readInventory(stack.getOrDefault(AllDataComponents.TOOLBOX_INVENTORY, ItemContainerContents.EMPTY));
+
+        if (stack.has(DataComponents.CUSTOM_NAME)) {
+            be.setCustomName(stack.getHoverName());
+        }
+
+        extendedToolbox.create_toolbox_utils$setProxy(true);
+
+        ItemContainerContents loadedFilters = stack.get(ToolboxDataComponents.TOOLBOX_FILTERS);
+        if (loadedFilters != null && extendedToolbox.create_toolbox_utils$getInventory() instanceof IFilterable filterable) {
+            List<ItemStack> filters = filterable.create_toolbox_utils$getFilters();
+            for (int i = 0; i < filters.size(); i++) {
+                if (i < loadedFilters.getSlots()) {
+                    filters.set(i, loadedFilters.getStackInSlot(i));
+                }
+            }
+        }
         be.initialize();
         ACTIVE_PROXIES.get(level).put(be.getUniqueId(), be);
         return be;
@@ -48,7 +81,7 @@ public class ToolboxProxyHandler {
         Level level = entity.level();
         BlockPos currentPos = entity.blockPosition();
 
-        ToolboxProxy proxy = ToolboxProxyHandler.getProxy(level, uuid);
+        ToolboxBlockEntity proxy = ToolboxProxyHandler.getProxy(level, uuid);
 
         if (proxy != null) {
             if (!proxy.getBlockPos().equals(currentPos) || proxy.getLevel() != level) {

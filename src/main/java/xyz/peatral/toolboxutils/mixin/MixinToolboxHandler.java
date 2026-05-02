@@ -10,7 +10,6 @@ import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -19,9 +18,8 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-import xyz.peatral.toolboxutils.IEnchantableToolbox;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxy;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
+import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
 
 import java.util.UUID;
 import java.util.function.Predicate;
@@ -49,7 +47,7 @@ public class MixinToolboxHandler {
             @Local(argsOnly = true) Player player
     ) {
         return original.call(instance, predicate.and(toolboxBlockEntity -> {
-            if (toolboxBlockEntity instanceof IEnchantableToolbox tb) {
+            if (toolboxBlockEntity instanceof IExtendedToolbox tb) {
                 return tb.create_toolbox_utils$getLoyaltyLevel(world.registryAccess()) < 1
                         || tb.create_toolbox_utils$isOwner(player);
             }
@@ -59,7 +57,7 @@ public class MixinToolboxHandler {
 
     @WrapMethod(method = "withinRange", remap = false)
     private static boolean withinRange(Player player, ToolboxBlockEntity box, Operation<Boolean> original) {
-        boolean isOwnedByPlayer = box instanceof IEnchantableToolbox tb
+        boolean isOwnedByPlayer = box instanceof IExtendedToolbox tb
                 && tb.create_toolbox_utils$getLoyaltyLevel(player.level().registryAccess()) >= 3
                 && tb.create_toolbox_utils$isOwner(player);
         return isOwnedByPlayer || original.call(player, box);
@@ -99,7 +97,7 @@ public class MixinToolboxHandler {
                     continue;
                 }
 
-                ToolboxProxy proxy = ToolboxProxyHandler.getProxy(world, uuid);
+                ToolboxBlockEntity proxy = ToolboxProxyHandler.getProxy(world, uuid);
                 if (proxy != null) {
                     proxy.connectPlayer(slot, player, i);
                 }
@@ -145,7 +143,7 @@ public class MixinToolboxHandler {
         UUID prevUUID = NbtUtils.loadUUID(NBTHelper.getINBT(prevData, "UUID"));
         int prevSlot = prevData.getInt("Slot");
 
-        ToolboxProxy prevProxy = ToolboxProxyHandler.getProxy(world, prevUUID);
+        ToolboxBlockEntity prevProxy = ToolboxProxyHandler.getProxy(world, prevUUID);
         if (prevProxy != null) {
             prevProxy.unequip(prevSlot, player, hotbarSlot, keepItems || !ToolboxHandler.withinRange(player, prevProxy));
         }

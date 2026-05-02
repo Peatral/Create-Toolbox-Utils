@@ -7,7 +7,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
 import xyz.peatral.toolboxutils.ToolboxUtils;
 
 import java.util.UUID;

@@ -17,7 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-import xyz.peatral.toolboxutils.IEnchantableToolbox;
+import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 
 import java.util.Optional;
 
@@ -35,7 +35,7 @@ public abstract class MixinToolboxBlock extends HorizontalDirectionalBlock imple
         }
 
         this.withBlockEntityDo(worldIn, pos, (be) -> {
-            if (be instanceof IEnchantableToolbox tbe) {
+            if (be instanceof IExtendedToolbox tbe) {
                 tbe.create_toolbox_utils$setEnchantments(EnchantmentHelper.getEnchantmentsForCrafting(stack));
 
                 if (placer instanceof Player player) {
@@ -48,7 +48,7 @@ public abstract class MixinToolboxBlock extends HorizontalDirectionalBlock imple
     @Inject(method = "getCloneItemStack", at = @At("RETURN"))
     public void getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, CallbackInfoReturnable<ItemStack> cir) {
         Optional<ToolboxBlockEntity> blockEntityOptional = this.getBlockEntityOptional(level, pos);
-        if (blockEntityOptional.isPresent() && blockEntityOptional.get() instanceof IEnchantableToolbox tbe) {
+        if (blockEntityOptional.isPresent() && blockEntityOptional.get() instanceof IExtendedToolbox tbe) {
             EnchantmentHelper.setEnchantments(cir.getReturnValue(), tbe.create_toolbox_utils$getEnchantments());
         }
     }

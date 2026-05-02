@@ -1,8 +1,8 @@
 package xyz.peatral.toolboxutils.network;
 
+import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
-import net.createmod.catnip.nbt.NBTHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
@@ -17,10 +17,9 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.apache.commons.lang3.mutable.MutableBoolean;
-import xyz.peatral.toolboxutils.IEnchantableToolbox;
+import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 import xyz.peatral.toolboxutils.ToolboxUtils;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxy;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
 
 import java.util.UUID;
 
@@ -41,14 +40,14 @@ public record ToolboxProxyDisposeAllPacket(UUID uuid) implements CustomPacketPay
     public void handle(IPayloadContext context) {
         ServerPlayer player = (ServerPlayer) context.player();
         Level world = player.level();
-        ToolboxProxy blockEntity = ToolboxProxyHandler.getProxy(world, uuid);
+        ToolboxBlockEntity blockEntity = ToolboxProxyHandler.getProxy(world, uuid);
         BlockPos toolboxPos = blockEntity.getBlockPos();
 
         double maxRange = ToolboxHandler.getMaxRange(player);
         if (player.distanceToSqr(toolboxPos.getX() + 0.5, toolboxPos.getY(), toolboxPos.getZ() + 0.5) > maxRange
                 * maxRange)
             return;
-        if (!(blockEntity instanceof IEnchantableToolbox toolbox))
+        if (!(blockEntity instanceof IExtendedToolbox toolbox))
             return;
 
         CompoundTag compound = player.getPersistentData()

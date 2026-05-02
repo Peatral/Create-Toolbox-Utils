@@ -14,7 +14,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import xyz.peatral.toolboxutils.network.ToolboxProxyDisposeAllPacket;
 import xyz.peatral.toolboxutils.network.ToolboxProxyEquipPacket;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxy;
+import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 
 import java.util.UUID;
 
@@ -28,7 +28,7 @@ public class MixinRadialToolboxMenu {
             at = @At(value = "INVOKE", target = "Lnet/createmod/catnip/platform/services/NetworkHelper;sendToServer(Lnet/minecraft/network/protocol/common/custom/CustomPacketPayload;)V")
     )
     private void sendToServer(NetworkHelper instance, CustomPacketPayload customPacketPayload, Operation<Void> original) {
-        if (selectedBox instanceof ToolboxProxy) {
+        if (IExtendedToolbox.isProxy(selectedBox)) {
             if (customPacketPayload instanceof ToolboxDisposeAllPacket) {
                 PacketDistributor.sendToServer(new ToolboxProxyDisposeAllPacket(selectedBox.getUniqueId()));
                 return;

@@ -27,8 +27,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.peatral.toolboxutils.network.ToolboxProxyEquipPacket;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxy;
-import xyz.peatral.toolboxutils.proxy.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
+import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
 
 import java.util.Comparator;
 import java.util.List;
@@ -53,9 +53,9 @@ public class MixinToolboxHandlerClient {
             @Local(name = "comp") int comp,
             @Local(name = "player") LocalPlayer player
     ) {
-        if (toolboxBlockEntity instanceof ToolboxProxy proxy) {
+        if (IExtendedToolbox.isProxy(toolboxBlockEntity)) {
             instance.sendToServer(new ToolboxProxyEquipPacket(
-                    proxy.getUniqueId(),
+                    toolboxBlockEntity.getUniqueId(),
                     comp,
                     player.getInventory().selected
             ));
@@ -91,7 +91,7 @@ public class MixinToolboxHandlerClient {
 
         if (equipped) {
             UUID uuid = NbtUtils.loadUUID(NBTHelper.getINBT(compound.getCompound(slotKey), "UUID"));
-            ToolboxProxy proxy = ToolboxProxyHandler.getProxy(level, uuid);
+            ToolboxBlockEntity proxy = ToolboxProxyHandler.getProxy(level, uuid);
             if (proxy == null) {
                 ci.cancel();
                 return;
@@ -148,7 +148,7 @@ public class MixinToolboxHandlerClient {
             if (!compound.contains(key))
                 continue;
             UUID uuid = NbtUtils.loadUUID(NBTHelper.getINBT(compound.getCompound(key), "UUID"));
-            ToolboxProxy proxy = ToolboxProxyHandler.getProxy(player.level(), uuid);
+            ToolboxBlockEntity proxy = ToolboxProxyHandler.getProxy(player.level(), uuid);
             if (proxy == null) {
                 continue;
             }
