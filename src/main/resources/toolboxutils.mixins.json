@@ -12,6 +12,7 @@
     "MixinToolboxInventory"
   ],
   "client": [
+    "MixinItemInHandRenderer",
     "MixinRadialToolboxMenu",
     "MixinToolboxHandlerClient"
   ],
