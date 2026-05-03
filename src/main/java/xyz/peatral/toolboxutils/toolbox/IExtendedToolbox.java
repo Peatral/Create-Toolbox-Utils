@@ -11,6 +11,12 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.Optional;
 
+// TODO: Concierge Hat
+// TODO: Allay AI Overhaul
+// TODO: Render toolbox better
+// TODO: Curios renderer
+// TODO: think about how curios can be improved upon (to make it not op)
+
 public interface IExtendedToolbox {
     ItemEnchantments create_toolbox_utils$getEnchantments();
     void create_toolbox_utils$setEnchantments(ItemEnchantments enchantments);

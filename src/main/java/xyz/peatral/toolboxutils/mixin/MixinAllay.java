@@ -35,6 +35,13 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
 
     @Override
     public void setItemSlot(EquipmentSlot slot, ItemStack stack) {
+        if (slot == EquipmentSlot.MAINHAND) {
+            if (AllTags.AllItemTags.TOOLBOXES.matches(stack)) {
+                getPersistentData().putBoolean("ConciergeHat", true);
+            } else if (getPersistentData().contains("ConciergeHat")) {
+                getPersistentData().remove("ConciergeHat");
+            }
+        }
         ItemStack handStack = getItemBySlot(EquipmentSlot.MAINHAND);
         if (slot == EquipmentSlot.MAINHAND && AllTags.AllItemTags.TOOLBOXES.matches(handStack)) {
             UUID oldUuid = handStack.get(AllDataComponents.TOOLBOX_UUID);
