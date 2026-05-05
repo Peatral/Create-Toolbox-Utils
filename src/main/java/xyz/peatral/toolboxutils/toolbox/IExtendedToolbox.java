@@ -11,9 +11,6 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.Optional;
 
-// TODO: Concierge Hat
-// TODO: Allay AI Overhaul
-// TODO: Render toolbox better
 // TODO: Curios renderer
 // TODO: think about how curios can be improved upon (to make it not op)
 
