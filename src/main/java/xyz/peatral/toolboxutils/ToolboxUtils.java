@@ -9,5 +9,6 @@ public class ToolboxUtils {
 
     public ToolboxUtils(IEventBus modEventBus) {
         ToolboxDataComponents.register(modEventBus);
+        ToolboxActivities.register(modEventBus);
     }
 }

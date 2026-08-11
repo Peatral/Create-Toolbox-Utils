@@ -11,13 +11,14 @@ import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.behavior.*;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.allay.Allay;
-import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.level.Level;
+import xyz.peatral.toolboxutils.ToolboxActivities;
 
 import java.util.Optional;
 import java.util.UUID;
 
 public class ConciergeAi {
+
     public static Brain<?> makeBrain(Brain<Allay> brain) {
         initConciergeActivity(brain);
         return brain;
@@ -25,7 +26,7 @@ public class ConciergeAi {
 
     private static void initConciergeActivity(Brain<Allay> brain) {
         brain.addActivityWithConditions(
-            Activity.WORK,
+            ToolboxActivities.HELPING_PLAYER.get(),
             ImmutableList.of(
                     Pair.of(0, StayCloseToTarget.create(ConciergeAi::getLikedPlayerPositionTracker, entity -> true, 4, 10, 2.25F)),
                     Pair.of(1, SetEntityLookTargetSometimes.create(6.0F, UniformInt.of(30, 60))),

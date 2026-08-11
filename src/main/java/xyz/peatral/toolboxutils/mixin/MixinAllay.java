@@ -16,7 +16,6 @@ import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.allay.Allay;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.schedule.Activity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LeavesBlock;
@@ -27,6 +26,7 @@ import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xyz.peatral.toolboxutils.ToolboxActivities;
 import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
 import xyz.peatral.toolboxutils.toolbox.concierge.AttributeModifiers;
 import xyz.peatral.toolboxutils.toolbox.concierge.ConciergeAi;
@@ -63,7 +63,7 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
     public void customServerAiStep(Allay allay, Operation<Void> original) {
         ItemStack stack = getItemInHand(InteractionHand.MAIN_HAND);
         if (AllTags.AllItemTags.TOOLBOXES.matches(stack)) {
-            brain.setActiveActivityIfPossible(Activity.WORK);
+            brain.setActiveActivityIfPossible(ToolboxActivities.HELPING_PLAYER.get());
         } else {
             original.call(allay);
         }
