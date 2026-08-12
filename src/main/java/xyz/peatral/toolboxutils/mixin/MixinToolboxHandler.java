@@ -1,6 +1,5 @@
 package xyz.peatral.toolboxutils.mixin;
 
-import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
@@ -113,21 +112,32 @@ public class MixinToolboxHandler {
         return originalHasData;
     }
 
-    @ModifyExpressionValue(
-            method = "playerLogin",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/nbt/CompoundTag;isEmpty()Z"
-            )
-    )
-    private static boolean wrapPlayerLoginSyncCheck(boolean originalCondition, Player player) {
-        if (originalCondition) {
-            return true;
+    @WrapMethod(method = "playerLogin")
+    private static void wrapPlayerLoginSyncCheck(Player player, Operation<Void> original) {
+        if (!(player instanceof ServerPlayer)) {
+            original.call(player);
+            return;
         }
 
         CompoundTag persistentData = player.getPersistentData();
-        return persistentData.contains("CreateToolboxProxyData")
-                && !persistentData.getCompound("CreateToolboxProxyData").isEmpty();
+
+        // simply wrapping the call will not work as it will be synced twice
+        // so i need to evaluate whether the original function will sync
+        // not very clean but at least it dodges all edge cases
+        boolean originalWillSync = persistentData.contains("CreateToolboxData")
+                && !persistentData.getCompound("CreateToolboxData").isEmpty();
+
+        original.call(player);
+
+        // This way, we can run the sync when we know the original wont run it
+        if (!originalWillSync) {
+            boolean hasValidProxyData = persistentData.contains("CreateToolboxProxyData")
+                    && !persistentData.getCompound("CreateToolboxProxyData").isEmpty();
+
+            if (hasValidProxyData) {
+                syncData(player);
+            }
+        }
     }
 
     @Inject(method = "unequip", at = @At(value = "HEAD"))
