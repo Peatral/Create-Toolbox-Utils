@@ -14,6 +14,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentMap;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.Nameable;
 import net.minecraft.world.entity.player.Player;
@@ -23,12 +24,14 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
+import xyz.peatral.toolboxutils.network.SyncToolboxProxyPacket;
 import xyz.peatral.toolboxutils.toolbox.IFilterable;
 import xyz.peatral.toolboxutils.ToolboxDataComponents;
 import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
@@ -36,6 +39,7 @@ import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Mixin(ToolboxBlockEntity.class)
 public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implements Nameable, IExtendedToolbox {
@@ -45,6 +49,8 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Shadow
     public abstract boolean hasCustomName();
 
+    @Shadow
+    UUID uniqueId;
     @Unique
     public ItemEnchantments create_toolbox_utils$enchantments = null;
 
@@ -174,6 +180,11 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     public void sendData() {
         if (create_toolbox_utils$isProxy) {
             create_Toolbox_Utils$persistToItem();
+            if (level instanceof ServerLevel serverLevel) {
+                CompoundTag compoundTag = new CompoundTag();
+                write(compoundTag, serverLevel.registryAccess(), true);
+                PacketDistributor.sendToPlayersInDimension(serverLevel, new SyncToolboxProxyPacket(uniqueId, compoundTag));
+            }
         } else {
             super.sendData();
         }
@@ -183,8 +194,18 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     public void setChanged() {
         if (create_toolbox_utils$isProxy) {
             create_Toolbox_Utils$persistToItem();
+            if (level instanceof ServerLevel serverLevel) {
+                CompoundTag compoundTag = new CompoundTag();
+                write(compoundTag, serverLevel.registryAccess(), true);
+                PacketDistributor.sendToPlayersInDimension(serverLevel, new SyncToolboxProxyPacket(uniqueId, compoundTag));
+            }
         } else {
             super.setChanged();
         }
+    }
+
+    @Override
+    public void create_toolbox_utils$handleProxySyncData(CompoundTag data, HolderLookup.Provider registries) {
+        read(data, registries, true);
     }
 }

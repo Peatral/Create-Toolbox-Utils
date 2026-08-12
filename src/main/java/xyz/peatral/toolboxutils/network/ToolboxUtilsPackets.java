@@ -17,6 +17,11 @@ public class ToolboxUtilsPackets {
                 RemoveToolboxProxyPacket.STREAM_CODEC,
                 RemoveToolboxProxyPacket::handle
         );
+        registrar.playToClient(
+                SyncToolboxProxyPacket.TYPE,
+                SyncToolboxProxyPacket.STREAM_CODEC,
+                SyncToolboxProxyPacket::handle
+        );
 
         registrar.playToServer(
                 ToolboxProxyDisposeAllPacket.TYPE,
