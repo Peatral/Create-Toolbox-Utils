@@ -36,6 +36,13 @@ public class ToolboxProxyHandler {
         return uuid != null && ACTIVE_PROXIES.get(level).containsKey(uuid);
     }
 
+    /**
+     * Creates a toolbox proxy and returns the created proxy BE. The BE is not actually in the world but needs to be manually removed from the proxy handler.
+     * @param stack the toolbox item stack
+     * @param level the dimension the toolbox is located in
+     * @param pos the position the toolbox at
+     * @return the proxy that was created
+     */
     public static ToolboxBlockEntity createProxy(ItemStack stack, Level level, BlockPos pos) {
         ToolboxBlockEntity be = new ToolboxBlockEntity(AllBlockEntityTypes.TOOLBOX.get(), pos,
                 ((BlockItem) stack.getItem()).getBlock().defaultBlockState());
@@ -70,6 +77,11 @@ public class ToolboxProxyHandler {
         return be;
     }
 
+    /**
+     * Removes a proxy from the level. Does not unequip the proxy
+     * @param level the dimension where the proxy is located
+     * @param uuid the UUID of the proxy
+     */
     public static void removeProxy(Level level, UUID uuid) {
         if (uuid == null) return;
         ToolboxBlockEntity be = ACTIVE_PROXIES.get(level).remove(uuid);
@@ -78,7 +90,12 @@ public class ToolboxProxyHandler {
         }
     }
 
-    public static void disposeProxy(Level level, UUID uuid) {
+    /**
+     * Unequips a proxy from players
+     * @param level the dimension where the proxy is located
+     * @param uuid the UUID of the proxy
+     */
+    public static void unequipProxy(Level level, UUID uuid) {
         if (uuid == null) return;
 
         if (level instanceof ServerLevel serverLevel) {
@@ -97,10 +114,13 @@ public class ToolboxProxyHandler {
                 }
             }
         }
-
-        removeProxy(level, uuid);
     }
 
+    /**
+     * Ticks the proxy BE for the toolbox item at the position of the entity
+     * @param entity the entity the proxy is located at
+     * @param itemStack the toolbox item stack
+     */
     public static void tickToolbox(Entity entity, ItemStack itemStack) {
         UUID uuid = itemStack.get(AllDataComponents.TOOLBOX_UUID);
         if (uuid == null) return;
@@ -124,13 +144,20 @@ public class ToolboxProxyHandler {
         proxy.tick();
     }
 
-    public static void removeToolbox(Entity entity, ItemStack itemStack) {
-        UUID uuid = itemStack.get(AllDataComponents.TOOLBOX_UUID);
-        Level level = entity.level();
+    /**
+     * Removes the proxy and sync it to clients. Optionally also unequips the proxy from the players in the dimension
+     * @param level the dimension where the proxy is located
+     * @param uuid the UUID of the proxy
+     * @param unequip whether the proxy should be unequipped from the players
+     */
+    public static void removeProxySynced(Level level, UUID uuid, boolean unequip) {
         if (uuid != null) {
-            ToolboxProxyHandler.disposeProxy(level, uuid);
+            if (!unequip) {
+                ToolboxProxyHandler.unequipProxy(level, uuid);
+            }
+            ToolboxProxyHandler.removeProxy(level, uuid);
             if (level instanceof ServerLevel serverLevel) {
-                PacketDistributor.sendToPlayersInDimension(serverLevel, new RemoveToolboxProxyPacket(uuid));
+                PacketDistributor.sendToPlayersInDimension(serverLevel, new RemoveToolboxProxyPacket(uuid, unequip));
             }
         }
     }

@@ -90,7 +90,7 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
             UUID oldUuid = handStack.get(AllDataComponents.TOOLBOX_UUID);
             UUID newUuid = stack.get(AllDataComponents.TOOLBOX_UUID);
             if (oldUuid == null || !oldUuid.equals(newUuid)) {
-                ToolboxProxyHandler.removeToolbox(this, handStack);
+                ToolboxProxyHandler.removeProxySynced(this.level(), oldUuid, true);
             }
         }
         super.setItemSlot(slot, stack);

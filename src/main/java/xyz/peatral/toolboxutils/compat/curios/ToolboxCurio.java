@@ -27,6 +27,6 @@ public record ToolboxCurio(ItemStack itemStack) implements ICurio {
             return;
         }
 
-        ToolboxProxyHandler.removeToolbox(slotContext.entity(), itemStack);
+        ToolboxProxyHandler.removeProxySynced(slotContext.entity().level(), oldUuid, true);
     }
 }
