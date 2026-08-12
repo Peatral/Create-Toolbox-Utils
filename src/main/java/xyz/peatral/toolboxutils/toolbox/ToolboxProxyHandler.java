@@ -161,4 +161,23 @@ public class ToolboxProxyHandler {
             }
         }
     }
+
+    /**
+     * Changes the dimension a proxy is located in
+     * @param from the dimension the proxy comes from
+     * @param to the dimension the proxy goes to
+     * @param itemStack the toolbox itemstack
+     * @param pos the new position the toolbox is located at
+     * @param unequip whether the proxy should be unequipped from the players
+     */
+    public static void changeProxyDimension(Level from, Level to, ItemStack itemStack, BlockPos pos, boolean unequip) {
+        UUID uuid = itemStack.get(AllDataComponents.TOOLBOX_UUID);
+
+        if (!hasProxy(from, uuid)) {
+            return;
+        }
+
+        ToolboxProxyHandler.removeProxySynced(from, uuid, unequip);
+        ToolboxProxyHandler.createProxy(itemStack, to, pos);
+    }
 }
