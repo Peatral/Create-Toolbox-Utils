@@ -151,11 +151,6 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
                 .ifPresent(tag -> compound.put("Owner", tag));
     }
 
-    @Override
-    protected void read(CompoundTag tag, HolderLookup.Provider registries, boolean clientPacket) {
-        super.read(tag, registries, clientPacket);
-    }
-
     @Unique
     private void create_Toolbox_Utils$persistToItem() {
         DataComponentMap.Builder builder = DataComponentMap.builder();
@@ -174,7 +169,6 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
             create_Toolbox_Utils$sourceStack.set(ToolboxDataComponents.TOOLBOX_FILTERS, ItemContainerContents.fromItems(filters));
         }
     }
-
 
     @Override
     public void sendData() {
