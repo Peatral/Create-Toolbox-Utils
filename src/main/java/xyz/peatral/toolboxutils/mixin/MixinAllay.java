@@ -71,8 +71,9 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
                             if (entity instanceof IConcierge concierge) {
                                 concierge.create_toolbox_utils$tryToTeleportToOwner();
                             }
-                            ToolboxProxyHandler.changeProxyDimension(from, to, stack, entity.blockPosition(), false);
+                            ToolboxProxyHandler.changeProxyDimension(from, to, stack, entity.blockPosition(), true);
                         }));
+                        break;
                     }
                 }
             }

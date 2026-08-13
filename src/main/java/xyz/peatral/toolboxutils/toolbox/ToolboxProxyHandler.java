@@ -157,7 +157,9 @@ public class ToolboxProxyHandler {
             }
             ToolboxProxyHandler.removeProxy(level, uuid);
             if (level instanceof ServerLevel serverLevel) {
-                PacketDistributor.sendToPlayersInDimension(serverLevel, new RemoveToolboxProxyPacket(uuid, unequip));
+                for (ServerLevel serverLevelIt : serverLevel.getServer().getAllLevels()) {
+                    PacketDistributor.sendToPlayersInDimension(serverLevelIt, new RemoveToolboxProxyPacket(uuid, unequip && serverLevelIt == serverLevel));
+                }
             }
         }
     }
