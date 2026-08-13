@@ -179,12 +179,7 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Override
     public void sendData() {
         if (create_toolbox_utils$isProxy) {
-            create_Toolbox_Utils$persistToItem();
-            if (level instanceof ServerLevel serverLevel) {
-                CompoundTag compoundTag = new CompoundTag();
-                write(compoundTag, serverLevel.registryAccess(), true);
-                PacketDistributor.sendToPlayersInDimension(serverLevel, new SyncToolboxProxyPacket(uniqueId, compoundTag));
-            }
+            create_toolbox_utils$sync();
         } else {
             super.sendData();
         }
@@ -193,12 +188,7 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Override
     public void setChanged() {
         if (create_toolbox_utils$isProxy) {
-            create_Toolbox_Utils$persistToItem();
-            if (level instanceof ServerLevel serverLevel) {
-                CompoundTag compoundTag = new CompoundTag();
-                write(compoundTag, serverLevel.registryAccess(), true);
-                PacketDistributor.sendToPlayersInDimension(serverLevel, new SyncToolboxProxyPacket(uniqueId, compoundTag));
-            }
+            create_toolbox_utils$sync();
         } else {
             super.setChanged();
         }
@@ -207,5 +197,15 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     @Override
     public void create_toolbox_utils$handleProxySyncData(CompoundTag data, HolderLookup.Provider registries) {
         read(data, registries, true);
+    }
+
+    @Unique
+    public void create_toolbox_utils$sync() {
+        create_Toolbox_Utils$persistToItem();
+        if (level instanceof ServerLevel serverLevel) {
+            CompoundTag compoundTag = new CompoundTag();
+            write(compoundTag, serverLevel.registryAccess(), true);
+            PacketDistributor.sendToPlayersInDimension(serverLevel, new SyncToolboxProxyPacket(uniqueId, compoundTag));
+        }
     }
 }
