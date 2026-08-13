@@ -7,6 +7,8 @@ import com.mojang.serialization.Dynamic;
 import com.simibubi.create.AllDataComponents;
 import com.simibubi.create.AllTags;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -17,25 +19,29 @@ import net.minecraft.world.entity.animal.allay.Allay;
 import net.minecraft.world.entity.npc.InventoryCarrier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.LeavesBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.gameevent.vibrations.VibrationSystem;
+import net.minecraft.world.level.portal.DimensionTransition;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.peatral.toolboxutils.ToolboxActivities;
+import xyz.peatral.toolboxutils.ToolboxRegionTickets;
 import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
 import xyz.peatral.toolboxutils.toolbox.concierge.AttributeModifiers;
 import xyz.peatral.toolboxutils.toolbox.concierge.ConciergeAi;
+import xyz.peatral.toolboxutils.toolbox.concierge.IConcierge;
 
 import java.util.Optional;
 import java.util.UUID;
 
 @Mixin(Allay.class)
-public abstract class MixinAllay extends PathfinderMob implements InventoryCarrier, VibrationSystem {
+public abstract class MixinAllay extends PathfinderMob implements InventoryCarrier, VibrationSystem, IConcierge {
     protected MixinAllay(EntityType<? extends PathfinderMob> entityType, Level level) {
         super(entityType, level);
     }
@@ -46,6 +52,30 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
         ItemStack stack = getItemInHand(InteractionHand.MAIN_HAND);
         if (AllTags.AllItemTags.TOOLBOXES.matches(stack)) {
             ToolboxProxyHandler.tickToolbox(this, stack);
+
+            if (level() instanceof ServerLevel from && create_toolbox_utils$getOwner().isEmpty()) {
+                MinecraftServer server = from.getServer();
+                for (ServerLevel to : server.getAllLevels()) {
+                    Optional<Player> optionalPlayer = brain.getMemory(MemoryModuleType.LIKED_PLAYER)
+                            .map(to::getPlayerByUUID);
+                    if (optionalPlayer.isPresent() && to != from) {
+                        ChunkPos previousPos = chunkPosition();
+                        UUID ticketUuid = getUUID();
+                        changeDimension(new DimensionTransition(to, this, entity -> {
+                            from.getChunkSource().removeRegionTicket(
+                                    ToolboxRegionTickets.TRAVELLING_CONCIERGE,
+                                    previousPos,
+                                    2,
+                                    ticketUuid
+                            );
+                            if (entity instanceof IConcierge concierge) {
+                                concierge.create_toolbox_utils$tryToTeleportToOwner();
+                            }
+                            ToolboxProxyHandler.changeProxyDimension(from, to, stack, entity.blockPosition(), false);
+                        }));
+                    }
+                }
+            }
 
             if (!this.create_toolbox_utils$unableToMoveToOwner() && this.create_toolbox_utils$shouldTryTeleportToOwner()) {
                 this.create_toolbox_utils$tryToTeleportToOwner();
@@ -96,19 +126,29 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
         super.setItemSlot(slot, stack);
     }
 
+    @Override
+    protected void handlePortal() {
+        if (!brain.isActive(ToolboxActivities.HELPING_PLAYER.get())) {
+            super.handlePortal();
+        }
+    }
 
-    @Unique
+    @Override
     public void create_toolbox_utils$tryToTeleportToOwner() {
-        this.brain.getMemory(MemoryModuleType.LIKED_PLAYER)
-                .flatMap(uuid -> Optional.ofNullable(level().getPlayerByUUID(uuid)))
+        create_toolbox_utils$getOwner()
                 .ifPresent(player -> this.create_toolbox_utils$teleportToAroundBlockPos(player.blockPosition()));
     }
 
     @Unique
-    public boolean create_toolbox_utils$shouldTryTeleportToOwner() {
+    private Optional<Player> create_toolbox_utils$getOwner() {
         return this.brain.getMemory(MemoryModuleType.LIKED_PLAYER)
-                .flatMap(uuid -> Optional.ofNullable(level().getPlayerByUUID(uuid)))
-                .map(player -> this.distanceToSqr(player) >= 144.0)
+                .flatMap(uuid -> Optional.ofNullable(level().getPlayerByUUID(uuid)));
+    }
+
+    @Unique
+    public boolean create_toolbox_utils$shouldTryTeleportToOwner() {
+        return create_toolbox_utils$getOwner()
+                .map(player -> this.distanceToSqr(player) >= 32 * 32)
                 .orElse(false);
     }
 
@@ -152,8 +192,7 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
     public final boolean create_toolbox_utils$unableToMoveToOwner() {
         return this.isPassenger()
                 || this.mayBeLeashed()
-                || this.brain.getMemory(MemoryModuleType.LIKED_PLAYER)
-                        .flatMap(uuid -> Optional.ofNullable(level().getPlayerByUUID(uuid)))
+                || create_toolbox_utils$getOwner()
                         .map(Player::isSpectator).orElse(false);
     }
 }
