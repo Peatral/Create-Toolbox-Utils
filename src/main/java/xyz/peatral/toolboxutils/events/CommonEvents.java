@@ -1,6 +1,7 @@
 package xyz.peatral.toolboxutils.events;
 
 import com.simibubi.create.AllTags;
+import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -11,6 +12,7 @@ import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import xyz.peatral.toolboxutils.ToolboxRegionTickets;
 
 import java.util.List;
@@ -48,5 +50,10 @@ public class CommonEvents {
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    public static void onChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        ToolboxHandler.syncData(event.getEntity());
     }
 }

@@ -2,7 +2,6 @@ package xyz.peatral.toolboxutils.compat.curios;
 
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllTags;
-import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import com.tterrag.registrate.util.entry.BlockEntry;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -45,8 +44,8 @@ public class CuriosCompat {
 
         CuriosApi.getCuriosInventory(player)
                 .map(iCuriosItemHandler -> iCuriosItemHandler.findCurios(itemStack -> itemStack.is(AllTags.AllItemTags.TOOLBOXES.tag)))
-                .ifPresent(slots -> slots.forEach(result -> ToolboxProxyHandler.changeProxyDimension(from, to, result.stack(), player.blockPosition(), false)));
-
-        ToolboxHandler.syncData(player);
+                .ifPresent(slots -> {
+                    slots.forEach(result -> ToolboxProxyHandler.changeProxyDimension(from, to, result.stack(), player.blockPosition(), false));
+                });
     }
 }
