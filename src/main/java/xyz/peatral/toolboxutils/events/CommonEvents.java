@@ -1,6 +1,7 @@
 package xyz.peatral.toolboxutils.events;
 
 import com.simibubi.create.AllTags;
+import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -58,6 +59,7 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
+        ToolboxHandler.syncData(event.getEntity());
         // TODO: maybe sync all toolboxes of level to player
     }
 
@@ -71,7 +73,7 @@ public class CommonEvents {
     }
 
     @SubscribeEvent
-    public static void onChangeDimension(PlayerEvent.PlayerLoggedInEvent event) {
+    public static void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         ToolboxProxyHandler.playerLogin(event.getEntity());
     }
 }
