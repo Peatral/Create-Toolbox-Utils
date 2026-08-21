@@ -159,8 +159,6 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
      * Starts a sync from server to clients
      */
     public void sync() {
-        persistToItemStack();
-
         if (!(level instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -168,6 +166,8 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
         CompoundTag compoundTag = new CompoundTag();
         toolbox.writeClient(compoundTag, level.registryAccess());
         PacketDistributor.sendToPlayersInDimension(serverLevel, new SyncToolboxProxyPacket(getUniqueId(), compoundTag));
+
+        persistToItemStack();
     }
 
     /**
@@ -176,6 +176,7 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
      */
     public void handleSync(CompoundTag data) {
         toolbox.readClient(data, getLevel().registryAccess());
+
         persistToItemStack();
     }
 
