@@ -19,7 +19,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.apache.commons.lang3.mutable.MutableBoolean;
 import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 import xyz.peatral.toolboxutils.ToolboxUtils;
-import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
 
 import java.util.UUID;
 
@@ -40,8 +41,9 @@ public record ToolboxProxyDisposeAllPacket(UUID uuid) implements CustomPacketPay
     public void handle(IPayloadContext context) {
         ServerPlayer player = (ServerPlayer) context.player();
         Level world = player.level();
-        ToolboxBlockEntity blockEntity = ToolboxProxyHandler.getProxy(world, uuid);
-        BlockPos toolboxPos = blockEntity.getBlockPos();
+        ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(world, uuid);
+        BlockPos toolboxPos = proxy.getBlockPos();
+        ToolboxBlockEntity blockEntity = proxy.getToolbox();
 
         double maxRange = ToolboxHandler.getMaxRange(player);
         if (player.distanceToSqr(toolboxPos.getX() + 0.5, toolboxPos.getY(), toolboxPos.getZ() + 0.5) > maxRange
@@ -51,7 +53,7 @@ public record ToolboxProxyDisposeAllPacket(UUID uuid) implements CustomPacketPay
             return;
 
         CompoundTag compound = player.getPersistentData()
-                .getCompound("CreateToolboxProxyData");
+                .getCompound(ToolboxProxyHandler.PERSISTENT_KEY);
         MutableBoolean sendData = new MutableBoolean(false);
 
         ToolboxInventory toolboxInventory = toolbox.create_toolbox_utils$getInventory();
@@ -60,7 +62,7 @@ public record ToolboxProxyDisposeAllPacket(UUID uuid) implements CustomPacketPay
                 String key = String.valueOf(i);
                 if (compound.contains(key) && NbtUtils.loadUUID(compound.getCompound(key).get("UUID"))
                         .equals(uuid)) {
-                    ToolboxHandler.unequip(player, i, true);
+                    ToolboxProxyHandler.unequip(player, i, true);
                     sendData.setTrue();
                 }
 

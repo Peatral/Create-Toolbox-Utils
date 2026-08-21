@@ -32,10 +32,10 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.peatral.toolboxutils.ToolboxActivities;
 import xyz.peatral.toolboxutils.ToolboxRegionTickets;
-import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
 import xyz.peatral.toolboxutils.toolbox.concierge.AttributeModifiers;
 import xyz.peatral.toolboxutils.toolbox.concierge.ConciergeAi;
 import xyz.peatral.toolboxutils.toolbox.concierge.IConcierge;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -50,8 +50,9 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
     @Inject(method = "tick", at = @At("RETURN"))
     private void tick(CallbackInfo ci) {
         ItemStack stack = getItemInHand(InteractionHand.MAIN_HAND);
+
         if (AllTags.AllItemTags.TOOLBOXES.matches(stack)) {
-            ToolboxProxyHandler.tickToolbox(this, stack);
+            ToolboxProxyHandler.tickProxy(level(), stack, blockPosition());
 
             if (level() instanceof ServerLevel from && create_toolbox_utils$getOwner().isEmpty()) {
                 MinecraftServer server = from.getServer();
@@ -71,7 +72,7 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
                             if (entity instanceof IConcierge concierge) {
                                 concierge.create_toolbox_utils$tryToTeleportToOwner();
                             }
-                            ToolboxProxyHandler.changeProxyDimension(from, to, stack, entity.blockPosition(), true);
+                            ToolboxProxyHandler.changeProxyDimension(from, to, stack, entity.blockPosition());
                         }));
                         break;
                     }
@@ -79,7 +80,7 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
             }
 
             if (!this.create_toolbox_utils$unableToMoveToOwner() && this.create_toolbox_utils$shouldTryTeleportToOwner()) {
-                this.create_toolbox_utils$tryToTeleportToOwner();
+                    this.create_toolbox_utils$tryToTeleportToOwner();
             }
         }
     }
@@ -121,7 +122,7 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
             UUID oldUuid = handStack.get(AllDataComponents.TOOLBOX_UUID);
             UUID newUuid = stack.get(AllDataComponents.TOOLBOX_UUID);
             if (oldUuid == null || !oldUuid.equals(newUuid)) {
-                ToolboxProxyHandler.removeProxySynced(this.level(), oldUuid, true);
+                ToolboxProxyHandler.removeProxy(this.level(), oldUuid);
             }
         }
         super.setItemSlot(slot, stack);

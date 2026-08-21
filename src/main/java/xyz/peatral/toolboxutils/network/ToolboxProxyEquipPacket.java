@@ -1,7 +1,6 @@
 package xyz.peatral.toolboxutils.network;
 
 import com.simibubi.create.content.equipment.toolbox.ItemReturnInvWrapper;
-import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
 import net.minecraft.core.BlockPos;
@@ -20,7 +19,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 import xyz.peatral.toolboxutils.toolbox.IFilterable;
 import xyz.peatral.toolboxutils.ToolboxUtils;
-import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.UUID;
 
@@ -45,22 +45,22 @@ public record ToolboxProxyEquipPacket(UUID uuid, int slot, int hotbarSlot) imple
     public void handle(IPayloadContext context) {
         ServerPlayer player = (ServerPlayer) context.player();
         if (uuid == null) {
-            ToolboxHandler.unequip(player, hotbarSlot, false);
+            ToolboxProxyHandler.unequip(player, hotbarSlot, false);
             ToolboxHandler.syncData(player);
             return;
         }
 
-        ToolboxBlockEntity blockEntity = ToolboxProxyHandler.getProxy(player.level(), uuid);
-        BlockPos toolboxPos = blockEntity.getBlockPos();
+        ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(player.level(), uuid);
+        BlockPos toolboxPos = proxy.getBlockPos();
 
         double maxRange = ToolboxHandler.getMaxRange(player);
         if (player.distanceToSqr(toolboxPos.getX() + 0.5, toolboxPos.getY(), toolboxPos.getZ() + 0.5) > maxRange
                 * maxRange)
             return;
-        if (!(blockEntity instanceof IExtendedToolbox toolboxBlockEntity))
+        if (!(proxy.getToolbox() instanceof IExtendedToolbox toolboxBlockEntity))
             return;
 
-        ToolboxHandler.unequip(player, hotbarSlot, false);
+        ToolboxProxyHandler.unequip(player, hotbarSlot, false);
 
         if (slot < 0 || slot >= 8) {
             ToolboxHandler.syncData(player);
@@ -82,7 +82,7 @@ public record ToolboxProxyEquipPacket(UUID uuid, int slot, int hotbarSlot) imple
         }
 
         CompoundTag compound = player.getPersistentData()
-                .getCompound("CreateToolboxProxyData");
+                .getCompound(ToolboxProxyHandler.PERSISTENT_KEY);
         String key = String.valueOf(hotbarSlot);
 
         CompoundTag data = new CompoundTag();
@@ -91,9 +91,9 @@ public record ToolboxProxyEquipPacket(UUID uuid, int slot, int hotbarSlot) imple
         compound.put(key, data);
 
         player.getPersistentData()
-                .put("CreateToolboxProxyData", compound);
+                .put(ToolboxProxyHandler.PERSISTENT_KEY, compound);
 
-        blockEntity.connectPlayer(slot, player, hotbarSlot);
+        proxy.getToolbox().connectPlayer(slot, player, hotbarSlot);
         ToolboxHandler.syncData(player);
     }
 }

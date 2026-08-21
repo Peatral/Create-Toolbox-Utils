@@ -4,7 +4,7 @@ import com.simibubi.create.AllDataComponents;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
-import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ public record ToolboxCurio(ItemStack itemStack) implements ICurio {
 
     @Override
     public void curioTick(SlotContext slotContext) {
-        ToolboxProxyHandler.tickToolbox(slotContext.entity(), itemStack);
+        ToolboxProxyHandler.tickProxy(slotContext.entity().level(), itemStack, slotContext.entity().blockPosition());
     }
 
     @Override
@@ -27,6 +27,6 @@ public record ToolboxCurio(ItemStack itemStack) implements ICurio {
             return;
         }
 
-        ToolboxProxyHandler.removeProxySynced(slotContext.entity().level(), oldUuid, true);
+        ToolboxProxyHandler.removeProxy(slotContext.entity().level(), oldUuid);
     }
 }

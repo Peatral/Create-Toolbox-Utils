@@ -1,19 +1,23 @@
 package xyz.peatral.toolboxutils.events;
 
 import com.simibubi.create.AllTags;
-import com.simibubi.create.content.equipment.toolbox.ToolboxHandler;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryModuleType;
 import net.minecraft.world.entity.animal.allay.Allay;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.tick.EntityTickEvent;
 import xyz.peatral.toolboxutils.ToolboxRegionTickets;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.List;
 
@@ -54,6 +58,20 @@ public class CommonEvents {
 
     @SubscribeEvent
     public static void onChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
-        ToolboxHandler.syncData(event.getEntity());
+        // TODO: maybe sync all toolboxes of level to player
+    }
+
+    @SubscribeEvent
+    public static void onEntityTick(EntityTickEvent.Pre event) {
+        Entity entity = event.getEntity();
+        if (entity instanceof LivingEntity livingEntity) {
+            Level level = livingEntity.level();
+            ToolboxProxyHandler.entityTick(livingEntity, level);
+        }
+    }
+
+    @SubscribeEvent
+    public static void onChangeDimension(PlayerEvent.PlayerLoggedInEvent event) {
+        ToolboxProxyHandler.playerLogin(event.getEntity());
     }
 }

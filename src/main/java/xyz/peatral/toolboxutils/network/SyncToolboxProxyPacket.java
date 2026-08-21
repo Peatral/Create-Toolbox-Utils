@@ -1,6 +1,5 @@
 package xyz.peatral.toolboxutils.network;
 
-import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -8,11 +7,10 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.level.Level;
+import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import xyz.peatral.toolboxutils.ToolboxUtils;
-import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
-import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.UUID;
 
@@ -33,12 +31,10 @@ public record SyncToolboxProxyPacket(UUID uuid, CompoundTag data) implements Cus
     }
 
     public void handle(IPayloadContext context) {
-        Level level = context.player().level();
-
-        ToolboxBlockEntity toolbox = ToolboxProxyHandler.getProxy(level, uuid);
-
-        if (toolbox instanceof IExtendedToolbox extendedToolbox) {
-            extendedToolbox.create_toolbox_utils$handleProxySyncData(data, level.registryAccess());
+        if (!(context.player().level() instanceof ServerLevel serverLevel)) {
+            return;
         }
+
+        ToolboxProxyHandler.handleSync(serverLevel, uuid, data);
     }
 }

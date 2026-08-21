@@ -28,7 +28,8 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.peatral.toolboxutils.network.ToolboxProxyEquipPacket;
 import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
-import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.Comparator;
 import java.util.List;
@@ -84,14 +85,14 @@ public class MixinToolboxHandlerClient {
         toolboxes.sort(Comparator.comparing(ToolboxBlockEntity::getUniqueId));
 
         CompoundTag compound = player.getPersistentData()
-                .getCompound("CreateToolboxProxyData");
+                .getCompound(ToolboxProxyHandler.PERSISTENT_KEY);
 
         String slotKey = String.valueOf(player.getInventory().selected);
         boolean equipped = compound.contains(slotKey);
 
         if (equipped) {
             UUID uuid = NbtUtils.loadUUID(NBTHelper.getINBT(compound.getCompound(slotKey), "UUID"));
-            ToolboxBlockEntity proxy = ToolboxProxyHandler.getProxy(level, uuid);
+            ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(level, uuid);
             if (proxy == null) {
                 ci.cancel();
                 return;
@@ -102,7 +103,7 @@ public class MixinToolboxHandlerClient {
 
             if (canReachToolbox) {
                 RadialToolboxMenu screen = new RadialToolboxMenu(toolboxes,
-                        RadialToolboxMenu.State.SELECT_ITEM_UNEQUIP, proxy);
+                        RadialToolboxMenu.State.SELECT_ITEM_UNEQUIP, proxy.getToolbox());
                 screen.prevSlot(compound.getCompound(slotKey)
                         .getInt("Slot"));
                 ScreenOpener.open(screen);
@@ -132,11 +133,11 @@ public class MixinToolboxHandlerClient {
             @Local(name = "player") Player player
     ) {
         CompoundTag persistentData = player.getPersistentData();
-        if (!persistentData.contains("CreateToolboxProxyData"))
+        if (!persistentData.contains(ToolboxProxyHandler.PERSISTENT_KEY)) {
             return;
 
         CompoundTag compound = player.getPersistentData()
-                .getCompound("CreateToolboxProxyData");
+                .getCompound(ToolboxProxyHandler.PERSISTENT_KEY);
 
         if (compound.isEmpty())
             return;
@@ -148,7 +149,7 @@ public class MixinToolboxHandlerClient {
             if (!compound.contains(key))
                 continue;
             UUID uuid = NbtUtils.loadUUID(NBTHelper.getINBT(compound.getCompound(key), "UUID"));
-            ToolboxBlockEntity proxy = ToolboxProxyHandler.getProxy(player.level(), uuid);
+            ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(player.level(), uuid);
             if (proxy == null) {
                 continue;
             }

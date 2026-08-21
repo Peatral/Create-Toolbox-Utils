@@ -13,45 +13,47 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
-import xyz.peatral.toolboxutils.toolbox.ToolboxProxyHandler;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
+import java.util.List;
 import java.util.UUID;
-import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.simibubi.create.content.equipment.toolbox.ToolboxHandler.syncData;
+import static com.simibubi.create.content.equipment.toolbox.ToolboxHandler.toolboxes;
+import static xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler.proxies;
 
 @Mixin(ToolboxHandler.class)
 public class MixinToolboxHandler {
-
-    @WrapOperation(
-            method = "getNearest",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Ljava/util/stream/Stream;filter(Ljava/util/function/Predicate;)Ljava/util/stream/Stream;",
-                    ordinal = 1
-            ),
-            remap = false
-    )
-    private static Stream<ToolboxBlockEntity> getNearest(
-            Stream<ToolboxBlockEntity> instance,
-            Predicate<ToolboxBlockEntity> predicate,
-            Operation<Stream<ToolboxBlockEntity>> original,
-            @Local(argsOnly = true) LevelAccessor world,
-            @Local(argsOnly = true) Player player
-    ) {
-        return original.call(instance, predicate.and(toolboxBlockEntity -> {
-            if (toolboxBlockEntity instanceof IExtendedToolbox tb) {
-                return tb.create_toolbox_utils$getLoyaltyLevel(world.registryAccess()) < 1
-                        || tb.create_toolbox_utils$isOwner(player);
-            }
-            return true;
-        }));
+    @WrapMethod(method = "getNearest")
+    private static List<ToolboxBlockEntity> getNearest(LevelAccessor world, Player player, int maxAmount, Operation<List<ToolboxBlockEntity>> original) {
+        // TODO: Yeah i dont call the original at all lmao
+        Vec3 location = player.position();
+        double maxRange = ToolboxHandler.getMaxRange(player);
+        return Stream
+                .concat(
+                        toolboxes.get(world).values().stream(),
+                        proxies.get(world).values().stream().map(ToolboxProxyController::getToolbox)
+                )
+                .filter((p) -> {
+                    if (p instanceof IExtendedToolbox tb) {
+                        return tb.create_toolbox_utils$getLoyaltyLevel(world.registryAccess()) < 1
+                                || tb.create_toolbox_utils$isOwner(player);
+                    }
+                    return true;
+                })
+                .filter((p) -> ToolboxHandler.distance(location, p.getBlockPos()) < maxRange * maxRange)
+                .limit(maxAmount)
+                .filter(ToolboxBlockEntity::isFullyInitialized)
+                .collect(Collectors.toList());
     }
 
     @WrapMethod(method = "withinRange", remap = false)
@@ -78,8 +80,8 @@ public class MixinToolboxHandler {
             @Local(argsOnly = true) Level world
     ) {
         boolean proxyChangedData = false;
-        if (persistentData.contains("CreateToolboxProxyData")) {
-            CompoundTag compound = persistentData.getCompound("CreateToolboxProxyData");
+        if (persistentData.contains(ToolboxProxyHandler.PERSISTENT_KEY)) {
+            CompoundTag compound = persistentData.getCompound(ToolboxProxyHandler.PERSISTENT_KEY);
             for (int i = 0; i < 9; i++) {
                 String key = String.valueOf(i);
                 if (!compound.contains(key))
@@ -96,9 +98,10 @@ public class MixinToolboxHandler {
                     continue;
                 }
 
-                ToolboxBlockEntity proxy = ToolboxProxyHandler.getProxy(world, uuid);
+                ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(world, uuid);
                 if (proxy != null) {
-                    proxy.connectPlayer(slot, player, i);
+                    ToolboxBlockEntity be = proxy.getToolbox();
+                    be.connectPlayer(slot, player, i);
                 }
             }
         }
@@ -131,8 +134,8 @@ public class MixinToolboxHandler {
 
         // This way, we can run the sync when we know the original wont run it
         if (!originalWillSync) {
-            boolean hasValidProxyData = persistentData.contains("CreateToolboxProxyData")
-                    && !persistentData.getCompound("CreateToolboxProxyData").isEmpty();
+            boolean hasValidProxyData = persistentData.contains(ToolboxProxyHandler.PERSISTENT_KEY)
+                    && !persistentData.getCompound(ToolboxProxyHandler.PERSISTENT_KEY).isEmpty();
 
             if (hasValidProxyData) {
                 syncData(player);
@@ -143,7 +146,7 @@ public class MixinToolboxHandler {
     @Inject(method = "unequip", at = @At(value = "HEAD"))
     private static void unequip(Player player, int hotbarSlot, boolean keepItems, CallbackInfo ci) {
         CompoundTag compound = player.getPersistentData()
-                .getCompound("CreateToolboxProxyData");
+                .getCompound(ToolboxProxyHandler.PERSISTENT_KEY);
         Level world = player.level();
         String key = String.valueOf(hotbarSlot);
         if (!compound.contains(key))
@@ -153,9 +156,10 @@ public class MixinToolboxHandler {
         UUID prevUUID = NbtUtils.loadUUID(NBTHelper.getINBT(prevData, "UUID"));
         int prevSlot = prevData.getInt("Slot");
 
-        ToolboxBlockEntity prevProxy = ToolboxProxyHandler.getProxy(world, prevUUID);
+        ToolboxProxyController prevProxy = ToolboxProxyHandler.getProxy(world, prevUUID);
         if (prevProxy != null) {
-            prevProxy.unequip(prevSlot, player, hotbarSlot, keepItems || !ToolboxHandler.withinRange(player, prevProxy));
+            ToolboxBlockEntity prevBlockEntity = prevProxy.getToolbox();
+            prevBlockEntity.unequip(prevSlot, player, hotbarSlot, keepItems || !ToolboxHandler.withinRange(player, prevBlockEntity));
         }
         compound.remove(key);
     }

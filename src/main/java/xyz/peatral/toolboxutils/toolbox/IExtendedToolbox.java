@@ -2,16 +2,17 @@ package xyz.peatral.toolboxutils.toolbox;
 
 import com.mojang.authlib.GameProfile;
 import com.simibubi.create.content.equipment.toolbox.ToolboxInventory;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import xyz.peatral.toolboxutils.toolbox.proxy.IToolboxProxyCallbacks;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.WeakHashMap;
 
 // TODO: Curios renderer
 // TODO: think about how curios can be improved upon (to make it not op)
@@ -36,12 +37,14 @@ public interface IExtendedToolbox {
 
     ToolboxInventory create_toolbox_utils$getInventory();
     boolean create_toolbox_utils$isProxy();
-    void create_toolbox_utils$setProxy(boolean isProxy);
-    void create_toolbox_utils$setSource(ItemStack stack);
+    void create_toolbox_utils$setProxyCallbacks(IToolboxProxyCallbacks toolboxProxyCallbacks);
 
     static boolean isProxy(Object object) {
         return object instanceof IExtendedToolbox tb && tb.create_toolbox_utils$isProxy();
     }
 
-    void create_toolbox_utils$handleProxySyncData(CompoundTag data, HolderLookup.Provider registries);
+    Map<Integer, WeakHashMap<Player, Integer>> create_toolbox_utils$getConnectedPlayers();
+    void create_toolbox_utils$setConnectedPlayers(Map<Integer, WeakHashMap<Player, Integer>> connectedPlayers);
+
+    void create_toolbox_utils$persistToItemStack(ItemStack itemStack);
 }
