@@ -35,6 +35,7 @@ import xyz.peatral.toolboxutils.ToolboxRegionTickets;
 import xyz.peatral.toolboxutils.toolbox.concierge.AttributeModifiers;
 import xyz.peatral.toolboxutils.toolbox.concierge.ConciergeAi;
 import xyz.peatral.toolboxutils.toolbox.concierge.IConcierge;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
 import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.Optional;
@@ -122,7 +123,10 @@ public abstract class MixinAllay extends PathfinderMob implements InventoryCarri
             UUID oldUuid = handStack.get(AllDataComponents.TOOLBOX_UUID);
             UUID newUuid = stack.get(AllDataComponents.TOOLBOX_UUID);
             if (oldUuid == null || !oldUuid.equals(newUuid)) {
-                ToolboxProxyHandler.removeProxy(this.level(), oldUuid);
+                ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(level(), oldUuid);
+                if (proxy != null) {
+                    proxy.setRemoved();
+                }
             }
         }
         super.setItemSlot(slot, stack);

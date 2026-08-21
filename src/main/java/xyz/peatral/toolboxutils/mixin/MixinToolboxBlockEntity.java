@@ -116,6 +116,7 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     public void initialize(Operation<Void> original) {
         if (create_toolbox_utils$isProxy()) {
             super.initialize();
+            create_toolbox_utils$proxyCallbacks.onInitialize();
         } else {
             original.call();
         }
@@ -125,6 +126,7 @@ public abstract class MixinToolboxBlockEntity extends SmartBlockEntity implement
     public void invalidate(Operation<Void> original) {
         if (create_toolbox_utils$isProxy()) {
             super.invalidate();
+            create_toolbox_utils$proxyCallbacks.onInvalidate();
         } else {
             original.call();
         }

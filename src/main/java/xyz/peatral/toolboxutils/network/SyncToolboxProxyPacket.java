@@ -7,9 +7,10 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import xyz.peatral.toolboxutils.ToolboxUtils;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
 import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.UUID;
@@ -31,10 +32,13 @@ public record SyncToolboxProxyPacket(UUID uuid, CompoundTag data) implements Cus
     }
 
     public void handle(IPayloadContext context) {
-        if (!(context.player().level() instanceof ServerLevel serverLevel)) {
+        Level level = context.player().level();
+
+        if (!ToolboxProxyHandler.hasProxy(level, uuid)) {
             return;
         }
 
-        ToolboxProxyHandler.handleSync(serverLevel, uuid, data);
+        ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(level, uuid);
+        proxy.handleSync(data);
     }
 }

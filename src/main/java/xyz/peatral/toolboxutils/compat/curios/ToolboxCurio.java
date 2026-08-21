@@ -4,6 +4,7 @@ import com.simibubi.create.AllDataComponents;
 import net.minecraft.world.item.ItemStack;
 import top.theillusivec4.curios.api.SlotContext;
 import top.theillusivec4.curios.api.type.capability.ICurio;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
 import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.UUID;
@@ -27,6 +28,9 @@ public record ToolboxCurio(ItemStack itemStack) implements ICurio {
             return;
         }
 
-        ToolboxProxyHandler.removeProxy(slotContext.entity().level(), oldUuid);
+        ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(slotContext.entity().level(), oldUuid);
+        if (proxy != null) {
+            proxy.setRemoved();
+        }
     }
 }

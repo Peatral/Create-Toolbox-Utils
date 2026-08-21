@@ -14,8 +14,6 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.neoforge.network.PacketDistributor;
-import xyz.peatral.toolboxutils.network.RemoveToolboxProxyPacket;
 
 import java.util.*;
 
@@ -88,11 +86,6 @@ public class ToolboxProxyHandler {
                 ToolboxHandler.syncData(player);
             }
         }
-
-
-        //if (player instanceof ServerPlayer serverPlayer) {
-        //    ToolboxProxyHandler.syncAllProxiesToPlayer(serverPlayer.level(), serverPlayer);
-        //}
     }
 
     public static void unequip(Player player, int hotbarSlot, boolean keepItems) {
@@ -112,41 +105,6 @@ public class ToolboxProxyHandler {
     }
 
     // ----- Custom Stuff -----
-    public static void syncProxy(Level level, UUID uuid) {
-        if (!(level instanceof ServerLevel serverLevel)) return;
-        if (uuid == null) return;
-
-        ToolboxProxyController proxy = getProxy(level, uuid);
-        proxy.getSyncPacket().ifPresent(packet -> PacketDistributor.sendToPlayersInDimension(serverLevel, packet));
-    }
-
-    public static void handleSync(Level level, UUID uuid, CompoundTag data) {
-        if (!hasProxy(level, uuid)) {
-            return;
-        }
-        ToolboxProxyController proxy = getProxy(level, uuid);
-        proxy.handleSync(data);
-    }
-
-    /**
-     * Removes the proxy and syncs it to clients
-     * @param level the dimension where the proxy is located
-     * @param uuid the UUID of the proxy
-     */
-    public static void removeProxy(Level level, UUID uuid) {
-        if (uuid == null) return;
-        if (!hasProxy(level, uuid)) return;
-
-        ToolboxProxyController proxy = getProxy(level, uuid);
-
-        proxy.invalidate();
-        proxies.get(level).remove(uuid);
-
-        if (level instanceof ServerLevel serverLevel) {
-            PacketDistributor.sendToPlayersInDimension(serverLevel, new RemoveToolboxProxyPacket(uuid));
-        }
-    }
-
     /**
      * Changes the dimension a proxy is located in
      * @param from the dimension the proxy comes from

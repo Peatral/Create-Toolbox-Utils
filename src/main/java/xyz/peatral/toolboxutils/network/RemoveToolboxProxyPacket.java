@@ -8,6 +8,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import xyz.peatral.toolboxutils.ToolboxUtils;
+import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyController;
 import xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler;
 
 import java.util.UUID;
@@ -28,6 +29,9 @@ public record RemoveToolboxProxyPacket(UUID uuid) implements CustomPacketPayload
 
     public void handle(IPayloadContext context) {
         Level level = context.player().level();
-        ToolboxProxyHandler.removeProxy(level, uuid);
+        ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(level, uuid);
+        if (proxy != null) {
+            ToolboxProxyHandler.onUnload(proxy);
+        }
     }
 }

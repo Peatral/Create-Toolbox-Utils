@@ -6,14 +6,17 @@ import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemContainerContents;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import xyz.peatral.toolboxutils.ToolboxDataComponents;
+import xyz.peatral.toolboxutils.network.RemoveToolboxProxyPacket;
 import xyz.peatral.toolboxutils.network.SyncToolboxProxyPacket;
 import xyz.peatral.toolboxutils.toolbox.IExtendedToolbox;
 import xyz.peatral.toolboxutils.toolbox.IFilterable;
@@ -96,32 +99,56 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
         return toolbox.getUniqueId();
     }
 
+    // ----- Lifecycle methods -----
+
     public void initialize() {
         toolbox.initialize();
-        ToolboxProxyHandler.onLoad(this);
+        sync();
     }
 
-    public void invalidate() {
-        toolbox.invalidate();
-        ToolboxProxyHandler.onUnload(this);
+    public void setRemoved() {
+        toolbox.setRemoved();
+        if (level instanceof ServerLevel serverLevel) {
+            PacketDistributor.sendToPlayersInDimension(serverLevel, new RemoveToolboxProxyPacket(getUniqueId()));
+        }
     }
 
     public void tick() {
         toolbox.tick();
     }
 
+    // ----- Lifecycle hooks -----
+
+    @Override
     public void onSetChanged() {
         sync();
     }
 
+    @Override
     public void onSendData() {
         sync();
     }
 
+    @Override
     public void onLazyTick() {
         ToolboxProxyHandler.onLoad(this);
     }
 
+    @Override
+    public void onInitialize() {
+        ToolboxProxyHandler.onLoad(this);
+    }
+
+    @Override
+    public void onInvalidate() {
+        ToolboxProxyHandler.onUnload(this);
+    }
+
+    // ----- Synchronization methods -----
+
+    /**
+     * Writes the block entity data into the item stack
+     */
     private void persistToItemStack() {
         if (toolbox instanceof IExtendedToolbox extendedToolbox) {
             extendedToolbox.create_toolbox_utils$persistToItemStack(toolboxItemStack);
@@ -133,23 +160,14 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
      */
     public void sync() {
         persistToItemStack();
-        CompoundTag compoundTag = new CompoundTag();
-        toolbox.writeClient(compoundTag, level.registryAccess());
-        ToolboxProxyHandler.syncProxy(level, getUniqueId());
-    }
 
-    /**
-     * Creates the sync packet for a proxy. Always assumes this will only be sent to players in the same dimension
-     * @return the packet
-     */
-    public Optional<SyncToolboxProxyPacket> getSyncPacket() {
-        Level level = getLevel();
-        if (level == null) {
-            return Optional.empty();
+        if (!(level instanceof ServerLevel serverLevel)) {
+            return;
         }
+
         CompoundTag compoundTag = new CompoundTag();
         toolbox.writeClient(compoundTag, level.registryAccess());
-        return Optional.of(new SyncToolboxProxyPacket(getUniqueId(), compoundTag));
+        PacketDistributor.sendToPlayersInDimension(serverLevel, new SyncToolboxProxyPacket(getUniqueId(), compoundTag));
     }
 
     /**
@@ -160,6 +178,8 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
         toolbox.readClient(data, getLevel().registryAccess());
         persistToItemStack();
     }
+
+    // ----- Static helpers -----
 
     /**
      * Creates a {@link ToolboxBlockEntity} for a given {@link ItemStack}
