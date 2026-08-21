@@ -70,7 +70,6 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
      * Recreates the toolbox block entity at the current position in the current level
      */
     public void recreateToolbox() {
-        toolbox.invalidate();
         Map<Integer, WeakHashMap<Player, Integer>> connectedPlayers = null;
 
         if (toolbox instanceof IExtendedToolbox extendedToolbox) {
@@ -80,7 +79,7 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
         if (optionalToolboxBlockEntity.isEmpty()) {
             return;
         }
-        toolbox.invalidate();
+        toolbox.setRemoved();
         toolbox = optionalToolboxBlockEntity.get();
         if (toolbox instanceof IExtendedToolbox extendedToolbox && connectedPlayers != null) {
             // Simply relying on the entityTick inside of ToolboxProxyHandler will take too long
