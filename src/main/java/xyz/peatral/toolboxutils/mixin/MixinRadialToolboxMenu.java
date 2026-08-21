@@ -1,5 +1,6 @@
 package xyz.peatral.toolboxutils.mixin;
 
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.simibubi.create.content.equipment.toolbox.*;
@@ -31,12 +32,9 @@ public class MixinRadialToolboxMenu {
     )
     private void sendToServer(NetworkHelper instance, CustomPacketPayload customPacketPayload, Operation<Void> original) {
         if (IExtendedToolbox.isProxy(selectedBox)) {
-            Level level = selectedBox.getLevel();
-            if (customPacketPayload instanceof ToolboxDisposeAllPacket(BlockPos pos) && level != null) {
-                toolboxes.stream()
-                        .filter(box -> box.getBlockPos().equals(pos))
-                        .findFirst()
-                        .ifPresent(be -> PacketDistributor.sendToServer(new ToolboxProxyDisposeAllPacket(be.getUniqueId())));
+            if (customPacketPayload instanceof ToolboxDisposeAllPacket) {
+                UUID uuid = selectedBox.getUniqueId();
+                PacketDistributor.sendToServer(new ToolboxProxyDisposeAllPacket(uuid));
                 return;
             }
             if (customPacketPayload instanceof ToolboxEquipPacket(
@@ -48,5 +46,15 @@ public class MixinRadialToolboxMenu {
             }
         }
         original.call(instance, customPacketPayload);
+    }
+
+    @WrapMethod(method = "lambda$removed$0")
+    private static void sendDisposeAllToServer(ToolboxBlockEntity be, Operation<Void> original) {
+        if (IExtendedToolbox.isProxy(be)) {
+            UUID uuid = be.getUniqueId();
+            PacketDistributor.sendToServer(new ToolboxProxyDisposeAllPacket(uuid));
+            return;
+        }
+        original.call(be);
     }
 }
