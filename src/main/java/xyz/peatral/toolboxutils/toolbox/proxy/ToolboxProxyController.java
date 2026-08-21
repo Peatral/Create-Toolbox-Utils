@@ -103,11 +103,13 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
 
     public void initialize() {
         toolbox.initialize();
+        ToolboxProxyHandler.onLoad(this);
         sync();
     }
 
     public void setRemoved() {
         toolbox.setRemoved();
+        ToolboxProxyHandler.onUnload(this);
         if (level instanceof ServerLevel serverLevel) {
             PacketDistributor.sendToPlayersInDimension(serverLevel, new RemoveToolboxProxyPacket(getUniqueId()));
         }
@@ -136,12 +138,10 @@ public class ToolboxProxyController implements IToolboxProxyCallbacks {
 
     @Override
     public void onInitialize() {
-        ToolboxProxyHandler.onLoad(this);
     }
 
     @Override
     public void onInvalidate() {
-        ToolboxProxyHandler.onUnload(this);
     }
 
     // ----- Synchronization methods -----
