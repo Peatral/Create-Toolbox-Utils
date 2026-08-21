@@ -60,7 +60,6 @@ public class CommonEvents {
     @SubscribeEvent
     public static void onChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         ToolboxHandler.syncData(event.getEntity());
-        // TODO: maybe sync all toolboxes of level to player
     }
 
     @SubscribeEvent

@@ -133,6 +133,7 @@ public class ToolboxProxyHandler {
      */
     public static void tickProxy(Level level, ItemStack stack, BlockPos blockPos) {
         UUID toolboxUuid = stack.get(AllDataComponents.TOOLBOX_UUID);
+        // TODO: Handle uuid collisions
         ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(level, toolboxUuid);
         if (proxy == null) {
             ToolboxProxyController.create(stack, level, blockPos).ifPresent(p -> {
