@@ -1,9 +1,11 @@
 package xyz.peatral.toolboxutils.mixin;
 
 import com.google.common.collect.ImmutableList;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import com.llamalad7.mixinextras.sugar.Local;
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.simibubi.create.content.equipment.toolbox.RadialToolboxMenu;
 import com.simibubi.create.content.equipment.toolbox.ToolboxBlockEntity;
@@ -14,6 +16,7 @@ import net.createmod.catnip.gui.ScreenOpener;
 import net.createmod.catnip.nbt.NBTHelper;
 import net.createmod.catnip.platform.services.NetworkHelper;
 import net.minecraft.client.DeltaTracker;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
@@ -21,6 +24,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -116,31 +120,35 @@ public class MixinToolboxHandlerClient {
         }
     }
 
-    @Inject(
-            method = "renderOverlay",
-            at = @At(
-                    value = "INVOKE",
-                    target = "Lnet/minecraft/world/entity/player/Player;getPersistentData()Lnet/minecraft/nbt/CompoundTag;",
-                    ordinal = 0
-            )
+    @WrapMethod(
+            method = "renderOverlay"
     )
-    private static void renderOverlay(
-            GuiGraphics guiGraphics,
-            DeltaTracker deltaTracker,
-            CallbackInfo ci,
-            @Local(name = "x") int x,
-            @Local(name = "y") int y,
-            @Local(name = "player") Player player
-    ) {
+    private static void renderOverlay(GuiGraphics guiGraphics, DeltaTracker deltaTracker, Operation<Void> original) {
+        int width = guiGraphics.guiWidth();
+        int height = guiGraphics.guiHeight();
+        Minecraft mc = Minecraft.getInstance();
+        if (mc.options.hideGui || mc.gameMode.getPlayerMode() == GameType.SPECTATOR)
+            return;
+
+        int x = width / 2 - 90;
+        int y = height - 23;
+        RenderSystem.enableDepthTest();
+
+        Player player = mc.player;
+
         CompoundTag persistentData = player.getPersistentData();
         if (!persistentData.contains(ToolboxProxyHandler.PERSISTENT_KEY)) {
+            original.call(guiGraphics, deltaTracker);
             return;
+        }
 
         CompoundTag compound = player.getPersistentData()
                 .getCompound(ToolboxProxyHandler.PERSISTENT_KEY);
 
-        if (compound.isEmpty())
+        if (compound.isEmpty()) {
+            original.call(guiGraphics, deltaTracker);
             return;
+        }
 
         PoseStack poseStack = guiGraphics.pose();
         poseStack.pushPose();
@@ -163,6 +171,8 @@ public class MixinToolboxHandlerClient {
             texture.render(guiGraphics, x + 20 * slot - offset, y + offset);
         }
         poseStack.popPose();
+
+        original.call(guiGraphics, deltaTracker);
     }
 
 }
