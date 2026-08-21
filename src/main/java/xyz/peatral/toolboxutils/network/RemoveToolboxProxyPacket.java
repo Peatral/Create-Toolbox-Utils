@@ -31,7 +31,7 @@ public record RemoveToolboxProxyPacket(UUID uuid) implements CustomPacketPayload
         Level level = context.player().level();
         ToolboxProxyController proxy = ToolboxProxyHandler.getProxy(level, uuid);
         if (proxy != null) {
-            ToolboxProxyHandler.onUnload(proxy);
+            proxy.setRemoved();
         }
     }
 }
