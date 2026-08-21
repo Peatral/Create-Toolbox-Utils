@@ -27,10 +27,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.simibubi.create.content.equipment.toolbox.ToolboxHandler.syncData;
-import static com.simibubi.create.content.equipment.toolbox.ToolboxHandler.toolboxes;
-import static xyz.peatral.toolboxutils.toolbox.proxy.ToolboxProxyHandler.proxies;
-
 @Mixin(ToolboxHandler.class)
 public class MixinToolboxHandler {
     @WrapMethod(method = "getNearest")
@@ -40,8 +36,8 @@ public class MixinToolboxHandler {
         double maxRange = ToolboxHandler.getMaxRange(player);
         return Stream
                 .concat(
-                        toolboxes.get(world).values().stream(),
-                        proxies.get(world).values().stream().map(ToolboxProxyController::getToolbox)
+                        ToolboxHandler.toolboxes.get(world).values().stream(),
+                        ToolboxProxyHandler.proxies.get(world).values().stream().map(ToolboxProxyController::getToolbox)
                 )
                 .filter((p) -> {
                     if (p instanceof IExtendedToolbox tb) {
@@ -109,7 +105,7 @@ public class MixinToolboxHandler {
         boolean originalHasData = original.call(persistentData, persistentDataKey);
 
         if (proxyChangedData && !originalHasData) {
-            syncData(player);
+            ToolboxHandler.syncData(player);
         }
 
         return originalHasData;
@@ -138,7 +134,7 @@ public class MixinToolboxHandler {
                     && !persistentData.getCompound(ToolboxProxyHandler.PERSISTENT_KEY).isEmpty();
 
             if (hasValidProxyData) {
-                syncData(player);
+                ToolboxHandler.syncData(player);
             }
         }
     }
